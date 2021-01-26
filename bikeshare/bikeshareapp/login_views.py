@@ -6,7 +6,7 @@ from django.http import HttpResponse
 
 
 def login_index(request):
-    return render(request, 'login.html')
+    return render(request, 'login_beta.html')
 
 
 def user_login(request):
@@ -17,16 +17,16 @@ def user_login(request):
 
         if user == 1 or user == 2:
             # State code :1) wrong password. 2) User does not exist
-            return render(request, 'login.html', {'info': str(user)})
+            return render(request, 'login_beta.html', {'info': str(user)})
         else:
             role = user.role
-            response = render(request, 'login.html', {'info': "Login Successful!"})
+            response = render(request, 'login_beta.html', {'info': "Login Successful!"})
             response.set_cookie('username', username)
             response.set_cookie('role', role)
             return response
     else:
         print("Not Post")
-        return render(request, 'login.html', {'info': "This is a GET request"})
+        return render(request, 'login_beta.html', {'info': "This is a GET request"})
 
 
 def check_if_login(request):
