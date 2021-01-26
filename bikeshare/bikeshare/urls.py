@@ -16,12 +16,14 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from django.urls import path
+from django.views.generic.base import RedirectView
 
 from bikeshareapp import login_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^login/$', login_views.user_login),
-    url(r'^$', login_views.login_index),
-    url(r'^check/$', login_views.check_if_login)
+    url(r'^$', RedirectView.as_view(url='/login/')),
+    url(r'^check/$', login_views.check_if_login),
+    url(r'^logout/$', login_views.logout)
 ]
