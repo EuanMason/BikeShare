@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.bootcdn.net/ajax/libs/skeleton/2.0.4/skeleton.css"
+      rel="stylesheet"
+    />
+  
+    <style>
+      .error {
+        color: white;
+        padding: 5px;
+        margin: 5px, 15px, 15px, 0;
+        background-color: red;
+      }
+      .text-center {
+        text-align: center;
+      }
+    </style>
+    <title>Sharing Bike</title>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Let's Start</h1>
+
+      <form id="user-form">
+        <div>
+          <label for="username">User Name</label>
+          <input type="text" id="username" class="u-full-width" />
+        </div>
+      
+        <div>
+          <label for="email">Email</label>
+          <input type="text" id="email" class="u-full-width" />
+        </div>
+        <div>
+          <label for="phone">Phone Number</label>
+          <input type="text" id="phone" class="u-full-width" />
+        </div>
+        <div>
+          <label for="pwd">Set PassWord</label>
+          <input type="password" id="pwd" class="u-full-width" />
+        </div>
+        
+        <div>
+          <input type="submit" value="Register" class="u-full-width" />
+        </div>
+      </form>
+
+      <p class="text-center"> Already have an account? please <a href="login.html">click here</a>  to log in!</p>
+
+    <script src="app.js"></script>
+  </body>
+</html>
