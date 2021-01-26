@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-<!-- comment -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -8,14 +7,8 @@
       href="https://cdn.bootcdn.net/ajax/libs/skeleton/2.0.4/skeleton.css"
       rel="stylesheet"
     />
-  
+
     <style>
-      .error {
-        color: white;
-        padding: 5px;
-        margin: 5px, 15px, 15px, 0;
-        background-color: red;
-      }
       .text-center {
         text-align: center;
       }
@@ -29,29 +22,27 @@
       <form id="user-form">
         <div>
           <label for="username">User Name</label>
-          <input type="text" id="username" class="u-full-width" />
+          <input type="text" id="username" class="u-full-width" required />
         </div>
-      
+
         <div>
           <label for="email">Email</label>
-          <input type="text" id="email" class="u-full-width" />
+          <input type="text" id="email" class="u-full-width" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required  />
         </div>
+
         <div>
-          <label for="phone">Phone Number</label>
-          <input type="text" id="phone" class="u-full-width" />
+          <label for="password">Set PassWord</label>
+          <input type="password" id="pwd" class="u-full-width" required/>
         </div>
-        <div>
-          <label for="pwd">Set PassWord</label>
-          <input type="password" id="pwd" class="u-full-width" />
-        </div>
-        
+
         <div>
           <input type="submit" value="Register" class="u-full-width" />
         </div>
       </form>
 
       <p class="text-center"> Already have an account? please <a href="login.html">click here</a>  to log in!</p>
+        <script src="app.js"></script>
 
-    <script src="app.js"></script>
   </body>
 </html>
+
