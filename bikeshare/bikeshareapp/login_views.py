@@ -20,9 +20,11 @@ def user_login(request):
             return render(request, 'login_beta.html', {'info': str(user)})
         else:
             role = user.role
+            nickname = user.nickname
             response = render(request, 'login_beta.html', {'info': "Login Successful!"})
             response.set_cookie('username', username)
             response.set_cookie('role', role)
+            response.set_cookie('nickname', nickname)
             return response
     else:
         print("Not Post")
@@ -30,7 +32,8 @@ def user_login(request):
 
 
 def check_if_login(request):
+    nickname = request.COOKIES['nickname']
     userid = request.COOKIES['username']
     role = request.COOKIES['role']
-    return render(request, 'user_page.html', {'userid': userid, 'role': role})
+    return render(request, 'user_page.html', {'userid': userid, 'role': role, 'nickname': nickname})
 # Create your views here.
