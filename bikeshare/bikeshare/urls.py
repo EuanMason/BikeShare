@@ -19,11 +19,14 @@ from django.urls import path
 from django.views.generic.base import RedirectView
 
 from bikeshareapp import login_views
+from bikeshareapp import register_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^login/$', login_views.user_login),
     url(r'^$', RedirectView.as_view(url='/login/')),
     url(r'^check/$', login_views.check_if_login),
-    url(r'^logout/$', login_views.logout)
+    url(r'^logout/$', login_views.logout),
+    path('to_register/', register_views.to_register_view),
+    path('register/', register_views.register_view)
 ]

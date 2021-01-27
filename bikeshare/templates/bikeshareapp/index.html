@@ -19,20 +19,21 @@
     <div class="container">
       <h1>Let's Start</h1>
 
-      <form id="user-form">
+      <form id="user-form" action="/register/" method="post">
+          {% csrf_token %}
         <div>
           <label for="username">User Name</label>
-          <input type="text" id="username" class="u-full-width" required />
+          <input type="text" id="username" name="nickname" class="u-full-width" required />
         </div>
 
         <div>
           <label for="email">Email</label>
-          <input type="text" id="email" class="u-full-width" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required  />
+          <input type="text" id="email" name="email" class="u-full-width" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required  />
         </div>
 
         <div>
           <label for="password">Set PassWord</label>
-          <input type="password" id="pwd" class="u-full-width" required/>
+          <input type="password" id="pwd" name="password" class="u-full-width" required/>
         </div>
 
         <div>
@@ -41,7 +42,8 @@
       </form>
 
       <p class="text-center"> Already have an account? please <a href="login.html">click here</a>  to log in!</p>
-        <script src="app.js"></script>
+      {% load static %}
+      <script src="{% static "javascript/app.js" %}"></script>
 
   </body>
 </html>
