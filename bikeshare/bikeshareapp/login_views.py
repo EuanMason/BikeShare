@@ -26,17 +26,22 @@ def user_login(request):
         return render(request, 'login_beta.html')
 
 
+# function for
 def check_if_login(request):
-    nickname = request.COOKIES['nickname']
-    userid = request.COOKIES['userid']
-    role = request.COOKIES['role']
-    return render(request, 'user_page.html', {'userid': userid, 'role': role, 'nickname': nickname})
+    try:
+        userid = request.COOKIES['userid']
+        nickname = request.COOKIES['nickname']
+        role = request.COOKIES['role']
+        return render(request, 'user_page.html', {'userid': userid, 'role': role, 'nickname': nickname})
+    except KeyError:
+        return render(request, 'user_page.html', {'userid': 'not logged in'})
 
 
 def logout(request):
     response = HttpResponseRedirect('/login/')
-    response.delete_cookie('userid')
-    response.delete_cookie('role')
-    response.delete_cookie('nickname')
+    if request.COOKIES['userid'] is not None:
+        response.delete_cookie('userid')
+        response.delete_cookie('role')
+        response.delete_cookie('nickname')
     return response
 # Create your views here.

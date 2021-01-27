@@ -11,5 +11,4 @@ class User(models.Model):
         managed = False
         db_table = 'bikeshareapp_user'
 
-
 # Create your models here.
