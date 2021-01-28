@@ -12,6 +12,7 @@ class User(models.Model):
         managed = False
         db_table = 'bikeshareapp_user'
 
+
 # Create your models here.
 class Wallet(models.Model):
     credit = models.FloatField()
@@ -20,13 +21,15 @@ class Wallet(models.Model):
     def __str__(self):
         return self.name
 
+
 class Address(models.Model):
     town = models.CharField(max_length=100)
-    city  = models.CharField(max_length=100)
-    postcode  = models.CharField(max_length=50)
+    city = models.CharField(max_length=100)
+    postcode = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
+
 
 class Bike(models.Model):
     rent = models.FloatField()
@@ -38,17 +41,16 @@ class Bike(models.Model):
         return self.name
 
 
-
 class Trip(models.Model):
     userId = models.ForeignKey(User, on_delete=models.CASCADE)
     bikeId = models.ForeignKey(Bike, on_delete=models.CASCADE)
     date = models.DateTimeField(default=timezone.now)
-    startTime  = models.DateTimeField(default=timezone.now)
-    endTime  = models.DateTimeField(default=timezone.now)
+    startTime = models.DateTimeField(default=timezone.now)
+    endTime = models.DateTimeField(default=timezone.now)
     startAddressId = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='address_start')
     endAddressId = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='address_end')
     bikeRent = models.FloatField()
-    paymentStatus  = models.CharField(max_length=50)
+    paymentStatus = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
