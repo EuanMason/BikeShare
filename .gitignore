@@ -1,2 +1,6 @@
+__pycache__/
+*.py[cod]
+*.so
 env/
-bikeshare/bikeshare/__pycache__/
+*.pyc
+*.pyo
