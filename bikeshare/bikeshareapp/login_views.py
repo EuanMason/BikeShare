@@ -13,7 +13,7 @@ def user_login(request):
 
         if user == 1 or user == 2:
             # State code :1) wrong password. 2) User does not exist
-            return render(request, 'login_beta.html', {'info': str(user)})
+            return render(request, 'bikeshareapp/login.html', {'info': str(user)})
         else:
             role = user.role
             nickname = user.nickname
@@ -23,7 +23,7 @@ def user_login(request):
             response.set_cookie('nickname', nickname)
             return response
     else:
-        return render(request, 'bikeshareapp\login.html')
+        return render(request, 'bikeshareapp/login.html')
 
 
 # function for
