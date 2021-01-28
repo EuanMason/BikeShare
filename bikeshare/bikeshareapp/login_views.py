@@ -23,7 +23,7 @@ def user_login(request):
             response.set_cookie('nickname', nickname)
             return response
     else:
-        return render(request, 'login_beta.html')
+        return render(request, 'bikeshareapp\login.html')
 
 
 # function for

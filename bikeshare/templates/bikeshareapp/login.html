@@ -19,21 +19,26 @@
     <div class="container">
       <h1>Log In</h1>
 
-      <form id="user-form">
+      <form id="user-form" action="/login/" method="post">
+        <div>
+          {% csrf_token %}
+        </div>
         <div>
           <label for="username">User Name</label>
-          <input type="text" id="username" class="u-full-width" />
+          <input type="text" id="username" name="userid" class="u-full-width" />
         </div>
         <div>
           <label for="pwd">PassWord</label>
-          <input type="password" id="pwd" class="u-full-width" />
+          <input type="password" id="pwd" name="password" class="u-full-width" />
         </div>
 
         <div>
-          <input type="submit" value="Log In" class="u-full-width" />
+          <input type="submit" value="Login" class="u-full-width" />
         </div>
         <p class="text-center"> Don't have an account? please <a href="register_user.html">click here</a>  to register.</p>
       </form>
+
+      <p>{{ info }}</p>
 
     {% load static %}
     <script src="{% static "javascript/app.js" %}"></script>
