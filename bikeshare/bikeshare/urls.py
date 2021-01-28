@@ -21,12 +21,22 @@ from django.views.generic.base import RedirectView
 from bikeshareapp import login_views
 from bikeshareapp import register_views
 
+from django.urls import include, path
+from rest_framework import routers
+from bikeshareapp import views # progsd-bike-share\bikeshare\bikeshareapp\views.py
+
+router = routers.DefaultRouter()
+router.register(r'users', views.UserViewSet)
+router.register(r'groups', views.GroupViewSet)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^login/$', login_views.user_login),
     url(r'^$', RedirectView.as_view(url='/login/')),
-    url(r'^check/$', login_views.check_if_login),
+    url(r'^home/$', login_views.check_if_login),
     url(r'^logout/$', login_views.logout),
     path('to_register/', register_views.to_register_view),
-    path('register/', register_views.register_view)
+    path('register/', register_views.register_view),
+    path('', include(router.urls)),
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

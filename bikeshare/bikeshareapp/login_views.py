@@ -17,7 +17,7 @@ def user_login(request):
         else:
             role = user.role
             nickname = user.nickname
-            response = HttpResponseRedirect('/check/')
+            response = HttpResponseRedirect('/home/')
             response.set_cookie('userid', userid)
             response.set_cookie('role', role)
             response.set_cookie('nickname', nickname)
