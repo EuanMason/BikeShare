@@ -22,6 +22,14 @@ class Wallet(models.Model):
     def __str__(self):
         return self.name
 
+    # If we need to override the basisc acitions
+    # def save(self, *args, **kwargs):
+    #    super().save(*args, **kwargs)
+
+    class Meta:
+        db_table = 'wallet'
+
+
 class Address(models.Model):
     LocationID = models.AutoField(primary_key=True)
     Line1 = models.CharField(max_length=200, blank=False)
@@ -30,6 +38,9 @@ class Address(models.Model):
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        db_table = 'address'    
 
 
 class Bike(models.Model):
@@ -42,6 +53,8 @@ class Bike(models.Model):
     def __str__(self):
         return self.name
 
+    class Meta:
+        db_table = 'bike'
 
 class Trip(models.Model):
     TripID = models.AutoField(primary_key=True)
@@ -53,7 +66,11 @@ class Trip(models.Model):
     EndAddress = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='EndAddress')
     Cost = models.FloatField()
     PaymentStatus = models.IntegerField()
+    # Test = models.IntegerField(default=-1)
     # userId = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
+
+    class Meta:
+        db_table = 'trip'
