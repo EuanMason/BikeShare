@@ -15,42 +15,45 @@ class User(models.Model):
 
 # Create your models here.
 class Wallet(models.Model):
-    credit = models.FloatField()
-    dueCharge = models.FloatField()
+    WalletID = models.AutoField(primary_key=True)
+    Credit = models.FloatField()
+    Payment = models.FloatField()
 
     def __str__(self):
         return self.name
 
-
 class Address(models.Model):
-    town = models.CharField(max_length=100)
-    city = models.CharField(max_length=100)
-    postcode = models.CharField(max_length=50)
+    LocationID = models.AutoField(primary_key=True)
+    Line1 = models.CharField(max_length=200, blank=False)
+    City = models.CharField(max_length=100)
+    Postcode = models.CharField(max_length=50, blank=False)
 
     def __str__(self):
         return self.name
 
 
 class Bike(models.Model):
-    rent = models.FloatField()
-    isAvailable = models.BooleanField()
-    isDefective = models.BooleanField()
-    locationID = models.ForeignKey(Address, on_delete=models.CASCADE)
+    BikeID = models.AutoField(primary_key=True)
+    Rent = models.FloatField(null=False)
+    IsAvailable = models.IntegerField(null=False)
+    IsDefective = models.IntegerField(null=False)
+    LocationID = models.ForeignKey(Address, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
 
 
 class Trip(models.Model):
-    userId = models.ForeignKey(User, on_delete=models.CASCADE)
-    bikeId = models.ForeignKey(Bike, on_delete=models.CASCADE)
-    date = models.DateTimeField(default=timezone.now)
-    startTime = models.DateTimeField(default=timezone.now)
-    endTime = models.DateTimeField(default=timezone.now)
-    startAddressId = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='address_start')
-    endAddressId = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='address_end')
-    bikeRent = models.FloatField()
-    paymentStatus = models.CharField(max_length=50)
+    TripID = models.AutoField(primary_key=True)
+    BikeID = models.ForeignKey(Bike, on_delete=models.CASCADE)
+    Date = models.DateTimeField(default=timezone.now)
+    StartTime = models.DateTimeField(default=timezone.now)
+    EndTime = models.DateTimeField(default=timezone.now)
+    StartAddress = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='StartAddress')
+    EndAddress = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='EndAddress')
+    Cost = models.FloatField()
+    PaymentStatus = models.IntegerField()
+    # userId = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
         return self.name
