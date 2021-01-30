@@ -4,6 +4,7 @@ from rest_framework import permissions
 from bikeshareapp.serializers import UserSerializer, GroupSerializer
 
 
+# Taken from https://www.django-rest-framework.org/tutorial/quickstart/ as tests
 class UserViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.

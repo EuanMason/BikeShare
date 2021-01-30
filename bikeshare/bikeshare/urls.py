@@ -24,10 +24,16 @@ from bikeshareapp import register_views
 from django.urls import include, path
 from rest_framework import routers
 from bikeshareapp import views # progsd-bike-share\bikeshare\bikeshareapp\views.py
+from bikeshareapp import rest_views #progsd-bike-share\bikeshare\bikeshareapp\rest_views.py
 
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
+# Register the Rest Views
+router.register(r'wallet', rest_views.WalletViewSet)
+router.register(r'address', rest_views.AddressViewSet)
+router.register(r'bike', rest_views.BikeViewSet)
+router.register(r'trip', rest_views.TripViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
