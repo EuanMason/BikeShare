@@ -17,7 +17,7 @@ class User(models.Model):
 class Wallet(models.Model):
     WalletID = models.AutoField(primary_key=True)
     Credit = models.FloatField()
-    Payment = models.FloatField()
+    PaymentMethods = models.BinaryField()
 
     def __str__(self):
         return self.name
@@ -48,7 +48,7 @@ class Bike(models.Model):
     Rent = models.FloatField(null=False)
     IsAvailable = models.IntegerField(null=False)
     IsDefective = models.IntegerField(null=False)
-    LocationID = models.ForeignKey(Address, on_delete=models.CASCADE)
+    LocationID = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='AddressLocationID')
 
     def __str__(self):
         return self.name
