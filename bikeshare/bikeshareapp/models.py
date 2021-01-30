@@ -20,7 +20,7 @@ class Wallet(models.Model):
     PaymentMethods = models.BinaryField()
 
     def __str__(self):
-        return self.name
+        return self.WalletID
 
     # If we need to override the basisc acitions
     # def save(self, *args, **kwargs):
@@ -37,7 +37,7 @@ class Address(models.Model):
     Postcode = models.CharField(max_length=50, blank=False)
 
     def __str__(self):
-        return self.name
+        return self.Postcode
 
     class Meta:
         db_table = 'address'    
@@ -48,10 +48,10 @@ class Bike(models.Model):
     Rent = models.FloatField(null=False)
     IsAvailable = models.IntegerField(null=False)
     IsDefective = models.IntegerField(null=False)
-    LocationID = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='AddressLocationID')
+    AddressLocationID = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='AddressLocationID')
 
     def __str__(self):
-        return self.name
+        return self.BikeID
 
     class Meta:
         db_table = 'bike'
@@ -70,7 +70,7 @@ class Trip(models.Model):
     # userId = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.name
+        return self.TripID
 
     class Meta:
         db_table = 'trip'

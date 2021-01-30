@@ -31,11 +31,11 @@ class BikeSerializer(serializers.HyperlinkedModelSerializer):
     rent = serializers.FloatField(source='Rent')
     is_available = serializers.IntegerField(source='IsAvailable')
     is_defective = serializers.IntegerField(source='IsDefective')
-    location_id = serializers.IntegerField(source='LocationID')
+    address_location_id = serializers.IntegerField(source='AddressLocationID')
 
     class Meta:
         model = Bike
-        fields = ['bike_id', 'rent', 'is_available', 'is_defective', 'location_id']
+        fields = ['bike_id', 'rent', 'is_available', 'is_defective', 'address_location_id']
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
 
