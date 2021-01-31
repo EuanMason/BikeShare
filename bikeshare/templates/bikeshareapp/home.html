@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+{% extends "bikeshareapp/base.html" %}
+    {% block body_block %}
+        <div class="jumbotron text-center">
+            <h1 class="display-4">Hello, {{ userid }} ({{ nickname }})</h1>
+            <h2 class="display-5">You are a {{ role }}</h2>
+            <p class="lead">Welcome to our bike sharing system</p>
+            <hr/>
+            <p>Please click the button to enter your page</p>
+            <a class="btn btn-primary btn-lg" href="#(user_page/operator_page/manager_page)" role="button"
+                >Go to your page</a
+            >
+        </div>
+    {% endblock %}
