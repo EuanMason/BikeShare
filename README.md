@@ -51,6 +51,11 @@ Please be extremely  careful about this, because it could affect enormously when
 Please place all the templates at * *bikeshare\templates\bikeshareapp* *.
 All the extra framworks should be at * *bikeshare\templates\js* * (for js files) or  *bikeshare\templates\css* * (for css files)
 
+If you add a new template, you will probably need to add a url to render it. For that refer please follow this steps
+1. Go to the file frontend_views.py at * * bikeshare\bikeshareapp * *
+2. Add a method that will be incharge of rendering your template and validate whatever necessary. You can look at Peihai's login view at ```login_views.py``` if you need reference.
+3. Add your new route to urls.py at at * * bikeshare\bikeshare * *. Just add a new line ```like url(r'^login/$', login_views.user_login)```
+
 ## Backend
 To add functionalities please use the file **custom_actions_rest_view.py**, this is at * *bikeshare\bikeshareapp* *.
 There you will find four sections separated by a comment. Add your method where appropriate.
