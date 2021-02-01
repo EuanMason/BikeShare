@@ -20,6 +20,7 @@ from django.views.generic.base import RedirectView
 
 from bikeshareapp import login_views
 from bikeshareapp import register_views
+from bikeshareapp.frontend_views import *
 
 from django.urls import include, path
 from rest_framework import routers
