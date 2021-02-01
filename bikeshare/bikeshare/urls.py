@@ -26,11 +26,13 @@ from rest_framework import routers
 from bikeshareapp import views # progsd-bike-share\bikeshare\bikeshareapp\views.py
 from bikeshareapp import rest_views #progsd-bike-share\bikeshare\bikeshareapp\rest_views.py
 
+from bikeshareapp.custom_actions_rest_view import *
+
 router = routers.DefaultRouter()
 router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
 # Register the Rest Views
-router.register(r'wallet', rest_views.WalletViewSet)
+router.register(r'wallet', rest_views.WalletViewSet,basename='wallet')
 router.register(r'address', rest_views.AddressViewSet)
 router.register(r'bike', rest_views.BikeViewSet)
 router.register(r'trip', rest_views.TripViewSet)
@@ -44,5 +46,7 @@ urlpatterns = [
     path(r'login/to_register/', register_views.to_register_view),
     path('register/', register_views.register_view),
     path('', include(router.urls)),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework'))
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    path('add-money-to-wallet/', addMoney),
+    path('all-bikes/', getAllBikes)
 ]

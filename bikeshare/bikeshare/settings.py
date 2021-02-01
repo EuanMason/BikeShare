@@ -70,6 +70,7 @@ TEMPLATES = [
     },
 ]
 
+
 WSGI_APPLICATION = 'bikeshare.wsgi.application'
 
 # Database

@@ -31,21 +31,26 @@ class BikeSerializer(serializers.HyperlinkedModelSerializer):
     rent = serializers.FloatField(source='Rent')
     is_available = serializers.IntegerField(source='IsAvailable')
     is_defective = serializers.IntegerField(source='IsDefective')
-    address_location_id = serializers.IntegerField(source='AddressLocationID')
+    # This is the case if you only need to retrieve one field from the relationship
+    # Can check here: https://www.django-rest-framework.org/api-guide/relations/
+    #address_location_id = serializers.StringRelatedField(many=False, source='AddressLocationID')
+    # This is the case if you need to retrieve the object
+    location = AddressSerializer(source='AddressLocationID')
+    #address_location_id = serializers.IntegerField(source='AddressLocationID')
 
     class Meta:
         model = Bike
-        fields = ['bike_id', 'rent', 'is_available', 'is_defective', 'address_location_id']
+        fields = ['bike_id', 'rent', 'is_available', 'is_defective', 'location']
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
 
     trip_id = serializers.IntegerField(source='TripID')
-    bike_id = serializers.IntegerField(source='BikeID')
+    bike = BikeSerializer(source='BikeID')
     date  = serializers.DateField(source='Date')
     start_time = serializers.DateField(source='StartTime')
     end_time = serializers.DateField(source='EndTime')
-    start_address = serializers.IntegerField(source='StartAddress')
-    end_address = serializers.IntegerField(source='EndAddress')
+    start_address = AddressSerializer(source='StartAddress')
+    end_address = AddressSerializer(source='EndAddress')
     cost = serializers.FloatField(source='Cost')
     payment_status = serializers.IntegerField(source='PaymentStatus')
 
