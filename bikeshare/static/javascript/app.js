@@ -1,82 +1,3 @@
-class User {
-  constructor(userid, email, phone, password) {
-    this.userid = userid;
-    this.email = email;
-    this.phone = phone;
-    this.password = password;
-  }
-}
-
-class UI {
-  showAlert(message, className) {
-    // Create a div
-    const div = document.createElement("div");
-    div.className = `alert ${className}`;
-    // Add Text
-    // div.textContent = message;
-    div.appendChild(document.createTextNode(message));
-
-    // Get Form
-    const form = document.querySelector("#user-form");
-    // Get Parent
-    const container = document.querySelector(".container");
-    //Insert Alert
-    container.insertBefore(div, form);
-
-    // Disapear after 3s
-    setTimeout(function () {
-      document.getElementsByClassName(className)[0].remove();
-    }, 2000);
-  }
-}
-
-// Local Storage class
-class Store {
-  static getUsers() {
-    let users;
-    if (localStorage.getItem("users") === null) {
-      users = [];
-    } else {
-      users = JSON.parse(localStorage.getItem("users"));
-    }
-
-    return users;
-  }
-}
-
-// Event Listhers
-// DOM Load event
-document.addEventListener("DOMContentLoaded", Store.displayBooks);
-
-// Event Listener for add a book
-document.querySelector("#user-form").addEventListener("submit", function (e) {
-  // Get Form Values
-  const userid = document.querySelector("#userid").value,
-    email = document.querySelector("#email").value;
-  phone = document.querySelector("#phone").value;
-  password = document.querySelector("#password").value;
-
-  // Initianing a user
-  const user = new User(userid, email, phone, password);
-  console.log(user);
-
-  // Initianing UI
-  const ui = new UI();
-
-  // Validate
-  if (username === "" || email === "" || pwd === "") {
-    // Error alert
-    ui.showAlert("Please fill in all field", "error");
-  }
-  else
-  {
-      document.querySelector("#user-form").submit();
-  }
-  // alert("Failed");
-
-  e.preventDefault();
-});
-
 function login() {
    var userid = document.querySelector("#userid").value;
    var password = document.querySelector("#password").value;
@@ -104,7 +25,67 @@ function login() {
 					document.location.href = "../index.html";
 				}
 			}
-
    })
 }
+
+function postCodeSubmit() {
+  var postcode = document.querySelector("#postcode").value;
+  alert(postcode);
+  $.ajax({
+    type: "POST",
+    dataType: json,
+    url: "/bike/postcode",
+    data: {
+      postcode: postcode,
+    },
+    beforeSend: function () {
+      if (postcode == "" || postcode == "") {
+        alert("The postcode cannot be empty");
+        return false;
+      }
+      return true;
+    },
+  });
+}
+
+function bikeIDStartSubmit() {
+  var bikeID = document.querySelector("#bikeID").value;
+  alert(bikeID);
+  $.ajax({
+    type: "POST",
+    dataType: json,
+    url: "/bike/bikeID",
+    data: {
+      bikeID: bikeID,
+    },
+    beforeSend: function () {
+      if (bikeID == "" || bikeID == "") {
+        alert("The bikeID cannot be empty");
+        return false;
+      }
+      return true;
+    },
+  });
+}
+
+function bikeIDErrorSubmit() {
+  var bikeID = document.querySelector("#bikeID").value;
+  alert(bikeID);
+  $.ajax({
+    type: "POST",
+    dataType: json,
+    url: "/bike/bikeID",
+    data: {
+      bikeID: bikeID,
+    },
+    beforeSend: function () {
+      if (bikeID == "" || bikeID == "") {
+        alert("The bikeID cannot be empty");
+        return false;
+      }
+      return true;
+    },
+  });
+}
+
 

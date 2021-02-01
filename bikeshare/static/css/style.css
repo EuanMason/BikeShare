@@ -1,0 +1,35 @@
+:root {
+  --light-color: #f3f3f3;
+  --dark-color: #333;
+}
+
+/* Navbar */
+.navbar {
+  opacity: 0.96;
+}
+
+.navbar ul li a:hover {
+  color: var(--dark-color);
+  background-color: var(--light-color);
+}
+
+.container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 0 2rem;
+  overflow: hidden;
+}
+
+#main-page {
+  display: flex;
+  flex-direction: row;
+}
+
+#main-page .start-form {
+  flex: 1;
+}
+
+#main-page .start-form .form-group {
+  margin: 0.75rem;
+}
+
