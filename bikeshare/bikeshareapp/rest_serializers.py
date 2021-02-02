@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from bikeshareapp   .models import Wallet, Address, Bike, Trip
+from bikeshareapp.models import Wallet, Address, Bike, Trip, User
 
 class WalletSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -46,7 +46,7 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
 
     trip_id = serializers.IntegerField(source='TripID')
     bike = BikeSerializer(source='BikeID')
-    date  = serializers.DateField(source='Date')
+    date = serializers.DateField(source='Date')
     start_time = serializers.DateField(source='StartTime')
     end_time = serializers.DateField(source='EndTime')
     start_address = AddressSerializer(source='StartAddress')
@@ -66,4 +66,20 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
             'end_address',
             'cost',
             'payment_status'
+        ]
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+
+    user_id = serializers.CharField(source='userid')
+    user_pass = serializers.CharField(source='password')
+    user_role = serializers.CharField(source='role')
+    user_nickname = serializers.CharField(source='nickname')
+
+    class Meta:
+        model = User
+        fields = [
+            'user_id',
+            'user_pass',
+            'user_role',
+            'user_nickname'
         ]

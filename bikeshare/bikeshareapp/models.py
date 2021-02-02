@@ -4,9 +4,9 @@ from django.utils import timezone
 
 class User(models.Model):
     userid = models.EmailField(unique=True, primary_key=True, blank=False)
-    nickname = models.CharField(max_length=50, blank=False)
     password = models.CharField(max_length=50, blank=False)
     role = models.CharField(max_length=10, default='user')
+    nickname = models.CharField(max_length=50, blank=False)
 
     class Meta:
         managed = False
