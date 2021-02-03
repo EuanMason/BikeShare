@@ -37,6 +37,18 @@ def getAllBikes(request, type):
     }
     return Response(response, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def getAvailableLocationsOfBikes(request):
+    locations_to_return = {}
+
+    queryset = Address.objects.all()
+    serialized = AddressSerializer(queryset, many=True)
+    locations_to_return = serialized.data
+
+    response = {
+        'location': locations_to_return
+    }
+    return Response(response, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
 def getAvailableBikes(request):
