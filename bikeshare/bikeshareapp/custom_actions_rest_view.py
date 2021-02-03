@@ -63,18 +63,24 @@ def returnBike(request):
     if request.method == 'POST':
         bike_id = request.query_params.get('bike_id')
         location = request.query_params.get('location')
+        data=request.data
         bike = BikeSerializer(Bike.objects.filter(BikeID=bike_id))
+
+
         queryset = Address.objects.filter(Line1=location)
         if not queryset:
-            address = Address.objects.create(Line1=location)
+            address = Address.objects.update_or_create(Line1=location)
+
+            # Address.object.update_or_create()
             # address.save()
 
         queryset = Address.objects.get(Line1=location)
         serialized = AddressSerializer(queryset, many=False)
-        if serialized.is_valid():
-            bike.location = serialized.data["location_id"]
-            bike.is_valid()
-            bike.save()
+        Bike.objects.filter(BikeID=bike_id).update(AddressLocationID=serialized.data["location_id"])
+        # bike = BikeSerializer(data={'location': serialized.data["location_id"]})
+        # bike.location = serialized.data["location_id"]
+        # bike.save()
+        # bike.is_valid()
         # bike.AddressLocationID(queryset.LocationID)
         # if bike.is_valid():
         #     bike.save()
