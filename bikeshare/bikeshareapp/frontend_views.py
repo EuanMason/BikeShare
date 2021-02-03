@@ -5,3 +5,6 @@ from django.contrib.auth.decorators import login_required
 
 def test(request):
     return render(request, 'bikeshareapp/login.html') 
+
+def mainPage(request):
+    return render(request, 'bikeshareapp/user_page.html')
