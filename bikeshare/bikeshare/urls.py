@@ -49,7 +49,7 @@ urlpatterns = [
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('add-money-to-wallet/', addMoney),
-    path('all-bikes/<int:type>/', getAllBikes),
+    path('all-bikes/', getAllBikes),
     path('avail-bikes/', getAvailableBikes),
     path('get_user/', getUser),
     path('return_bike/', returnBike),
