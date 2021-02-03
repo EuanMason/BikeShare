@@ -70,7 +70,7 @@
               <a href="#home" class="nav-link">Home</a>
             </li>
             <li class="nav-item">
-              <a href="login.html" class="nav-link">Log out</a>
+              <a href="/logout" class="nav-link">Log out</a>
             </li>
           </ul>
         </div>
@@ -154,6 +154,33 @@
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhwTKf3kSrByV-QeOT5hWAXN7CtM2VHFE&callback=initMap"
     ></script>
 
+    <script>
+      // This should be in another file but for now, I will keep here. Once I make it work I will move it
+
+      function getAllBikes(type) {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function() {
+          if(this.readyState == 4 && this.status == 200) {
+            // Get the response from REST request
+            console.log("Done")
+            console.log(this)
+            response = JSON.parse(this.response)
+            console.log(response)
+          }
+        };
+
+        // TODO: Look for a way to check the user type
+        xhttp.open("GET", "http://127.0.0.1:8000/all-bikes/"+type, true);
+        xhttp.setRequestHeader("Content-type", "application/json");
+        xhttp.send("Your JSON Data Here");
+
+      }
+
+      console.log("Loading....")
+      setTimeout(getAllBikes(3), 3000);
+      
+
+    </script>
 
   </body>
 </html>

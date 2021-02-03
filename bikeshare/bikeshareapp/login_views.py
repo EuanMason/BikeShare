@@ -32,7 +32,7 @@ def check_if_login(request):
         userid = request.COOKIES['userid']
         nickname = request.COOKIES['nickname']
         role = request.COOKIES['role']
-        return render(request, 'user_page.html', {'userid': userid, 'role': role, 'nickname': nickname})
+        return render(request, 'bikeshareapp/user_page.html', {'userid': userid, 'role': role, 'nickname': nickname})
     except KeyError:
         return render(request, 'user_page.html', {'userid': 'not logged in'})
 
