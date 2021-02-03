@@ -14,20 +14,27 @@ from bikeshareapp.rest_serializers import WalletSerializer, AddressSerializer, B
 #/*                             General Actions                                */
 #/* -------------------------------------------------------------------------- */
 @api_view(['GET'])
-def getAllBikes(request, type):
-    data_to_return = {}
-    if type == 1:
+def getAllBikes(request):
+
+    # Changed to use the cookies instead of a parameter
+    # userid = request.COOKIES['userid']
+    # nickname = request.COOKIES['nickname']
+    role = request.COOKIES['role']
+
+    print(request.COOKIES)
+
+    if role == 'user':
         # For customer we only need the available bikes and not defective
         queryset = Bike.objects.filter(IsAvailable = 1, IsDefective = 0)
         serialized = BikeSerializer(queryset, many=True)
         data_to_return = serialized.data
-    elif type == 2:
+    elif role == 'operator':
         # For operator we need to show the bikes that are available and 
         #   it does not matter if it is defective
         queryset = Bike.objects.filter(IsAvailable = 1)
         serialized = BikeSerializer(queryset, many=True)
         data_to_return = serialized.data
-    elif type == 3:
+    elif role == 'manager':
         queryset = Bike.objects.all()
         serialized = BikeSerializer(queryset, many=True)
         data_to_return = serialized.data
