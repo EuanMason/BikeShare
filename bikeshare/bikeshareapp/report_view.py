@@ -9,7 +9,7 @@ def report_defective(request):
     request.encoding = 'utf-8'
     if 'bikeid' in request.POST and request.POST['bikeid']:
         try:
-            bikeid = request.GET['bikeid']
+            bikeid = request.POST['bikeid']
             bike = Bike.objects.get(BikeID=bikeid)
             bike.IsDefective = 1
             bike.save()
