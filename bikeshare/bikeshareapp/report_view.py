@@ -4,10 +4,10 @@ from .models import *
 from rest_framework.decorators import api_view
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 def report_defective(request):
     request.encoding = 'utf-8'
-    if 'bikeid' in request.GET and request.GET['bikeid']:
+    if 'bikeid' in request.POST and request.POST['bikeid']:
         try:
             bikeid = request.GET['bikeid']
             bike = Bike.objects.get(BikeID=bikeid)
