@@ -19,24 +19,24 @@
     <div class="container">
       <h1>Log In</h1>
 
-      <form id="user-form" action="/login/" method="post">
-        <div>
-          {% csrf_token %}
-        </div>
-        <div>
-          <label for="username">User Name</label>
-          <input type="text" id="username" name="userid" class="u-full-width" />
-        </div>
-        <div>
-          <label for="pwd">PassWord</label>
-          <input type="password" id="pwd" name="password" class="u-full-width" />
-        </div>
+        <form id="user-form" action="/login/" method="post">
+  <div>
+    {% csrf_token %}
+  </div>
+  <div>
+    <label for="userid">User Name</label>
+    <input type="text" id="userid"  class="u-full-width" />
+  </div>
+  <div>
+    <label for="password">PassWord</label>
+    <input type="password" id="password"  class="u-full-width" />
+  </div>
 
-        <div>
-          <input type="submit" value="Login" class="u-full-width" />
-        </div>
-        <p class="text-center"> Don't have an account? please <a href="to_register/">click here</a>  to register.</p>
-      </form>
+  <div>
+    <input type="button" value="Login" class="u-full-width" onclick="login()"/>
+  </div>
+  <p class="text-center"> Don't have an account? please <a href="to_register">click here</a >  to register.</p >
+</form>
 
       <p>{{ info }}</p>
 
