@@ -39,7 +39,7 @@ def check_if_login(request):
         return render(request, 'user_page.html', {'userid': 'not logged in'})
 
 
-#@auth_required
+@auth_required
 def logout(request):
     response = HttpResponseRedirect('/login/')
     if request.COOKIES['userid'] is not None:
