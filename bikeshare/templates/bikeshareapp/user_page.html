@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -15,8 +16,8 @@
       integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="css/bootstrap.min.css" />
-    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <link
       rel="stylesheet"
       media="screen and (max-width: 768px)"
@@ -181,32 +182,7 @@
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhwTKf3kSrByV-QeOT5hWAXN7CtM2VHFE&callback=initMap"
     ></script>
 
-    <script>
-      // This should be in another file but for now, I will keep here. Once I make it work I will move it
-
-      function getAllBikes() {
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
-          if(this.readyState == 4 && this.status == 200) {
-            // Get the response from REST request
-            console.log("Done")
-            response = JSON.parse(this.response)
-            console.log(response)
-          }
-        };
-
-        // TODO: Look for a way to check the user type
-        xhttp.open("GET", "http://127.0.0.1:8000/all-bikes/", true);
-        xhttp.setRequestHeader("Content-type", "application/json");
-        xhttp.send("Your JSON Data Here");
-
-      }
-
-      console.log("Loading....")
-      setTimeout(getAllBikes(), 3000);
-      
-
-    </script>
+   <script src="{% static "javascript/app.js" %}"></script>
 
   </body>
 </html>
