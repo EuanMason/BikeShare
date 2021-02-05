@@ -1,6 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.contrib.auth import login
+
+from util.decorators import auth_required
 from util.sql_query import *
 from django.http import HttpResponse, HttpResponseRedirect
 
@@ -37,6 +39,7 @@ def check_if_login(request):
         return render(request, 'user_page.html', {'userid': 'not logged in'})
 
 
+@auth_required
 def logout(request):
     response = HttpResponseRedirect('/login/')
     if request.COOKIES['userid'] is not None:
