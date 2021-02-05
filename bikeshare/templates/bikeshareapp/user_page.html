@@ -119,6 +119,12 @@
                 class="startbox btn btn-primary"
                 onclick="bikeIDStartSubmit()"
               >
+                submit
+              </button>
+              <button
+                class="startbox btn btn-primary"
+                onclick="StartCount()"
+              >
                 Start
               </button>
               <button
@@ -127,11 +133,33 @@
               >
                 Report errors
               </button>
+              
+              <div id="time">
+				<p>00:00:00</p>
+			  </div>
+			  <button
+                class="reportbox btn btn-dark"
+                onclick="StopCount()"
+              >
+                Stop
+              </button>
             </div>
           </form>
         </div>
       </div>
     </section>
+    
+	<style type="text/css">
+	#time p{
+	    color: #000000;
+		font-size: 45px; 
+		font-weight: bold;
+		margin-left:350px;
+		margin-bottom:0px;
+		overflow: hidden;
+		}
+		
+	</style>
 
     <script
       src="http://code.jquery.com/jquery-3.5.1.min.js"
