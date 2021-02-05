@@ -15,9 +15,9 @@ def auth_required(func):
             if request.COOKIES['userid']:
                 return func(request, *args, **kwargs)
         except ValueError:
-            raise HttpResponse(json.dumps({'state': NOPERMISSION}), status=status.HTTP_403_FORBIDDEN)
+            raise HttpResponse(status=status.HTTP_403_FORBIDDEN)
         except KeyError:
-            return HttpResponse(json.dumps({'state': NOPERMISSION}), status=status.HTTP_403_FORBIDDEN)
-        return HttpResponse(json.dumps({'state': NOPERMISSION}), status=status.HTTP_403_FORBIDDEN)
+            return HttpResponse(status=status.HTTP_403_FORBIDDEN)
+        return HttpResponse(status=status.HTTP_403_FORBIDDEN)
 
     return decorator
