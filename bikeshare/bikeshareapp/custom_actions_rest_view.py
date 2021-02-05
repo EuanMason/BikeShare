@@ -69,32 +69,15 @@ def returnBike(request):
 
         queryset = Address.objects.filter(Line1=location)
         if not queryset:
-            address = Address.objects.update_or_create(Line1=location)
-
-            # Address.object.update_or_create()
-            # address.save()
+            Address.objects.update_or_create(Line1=location)
 
         queryset = Address.objects.get(Line1=location)
         serialized = AddressSerializer(queryset, many=False)
         Bike.objects.filter(BikeID=bike_id).update(AddressLocationID=serialized.data["location_id"])
-        # bike = BikeSerializer(data={'location': serialized.data["location_id"]})
-        # bike.location = serialized.data["location_id"]
-        # bike.save()
-        # bike.is_valid()
-        # bike.AddressLocationID(queryset.LocationID)
-        # if bike.is_valid():
-        #     bike.save()
-        # else:
-        #     raise AssertionError("Error")
-        # queryset.type
-        # serialized = AddressSerializer(queryset, many=True)
-        # print(bike)
-        # bike.location.set_value(location)
-        # bike.save()
 
 
         response = {
-            "Status":"OK!!!!!!!" + str(queryset.LocationID),
+            "Status":"OK!!!!!!!",
             "request": serialized.data["location_id"]
         }
         return Response(response, status=status.HTTP_200_OK)
