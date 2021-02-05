@@ -22,7 +22,7 @@ function login() {
 				//{"success" : false , "errorMsg" : "Sorry, your account is invalid"}
 				if(data.success){
 					//Send get request to jump to the page
-					document.location.href = "../index.html";
+					document.location.href = "../user_page.html";
 				}
 			}
    })
