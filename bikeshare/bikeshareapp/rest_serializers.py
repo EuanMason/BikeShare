@@ -12,7 +12,10 @@ class WalletSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Wallet
-        fields = ['wallet_id', 'credit', 'payment']
+        fields = ['wallet_id',
+                  'credit',
+                  'payment'
+                  ]
 
 class AddressSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -20,10 +23,18 @@ class AddressSerializer(serializers.HyperlinkedModelSerializer):
     line_1 = serializers.CharField(source='Line1')
     city = serializers.CharField(source='City')
     postcode = serializers.CharField(source='Postcode')
+    longitude = serializers.FloatField(source='Longitude')
+    latitude = serializers.FloatField(source='Latitude')
 
     class Meta:
         model = Address
-        fields = ['location_id', 'line_1', 'city', 'postcode']
+        fields = ['location_id',
+                  'line_1',
+                  'city',
+                  'postcode',
+                  'longitude',
+                  'latitude'
+                  ]
 
 class BikeSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -40,7 +51,12 @@ class BikeSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Bike
-        fields = ['bike_id', 'rent', 'is_available', 'is_defective', 'location']
+        fields = ['bike_id',
+                  'rent',
+                  'is_available',
+                  'is_defective',
+                  'location'
+                  ]
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
 
