@@ -3,8 +3,8 @@ function login() {
    var password = document.querySelector("#password").value;
   $.ajax({
    type:"POST",
-   dataType:json,
-   url:"/login_views/login",
+   dataType:'json',
+   url:"/login/",
    data:{
     "userid":userid,
     "password":password
