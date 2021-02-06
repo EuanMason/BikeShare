@@ -88,4 +88,29 @@ function bikeIDErrorSubmit() {
   });
 }
 
-
+function getBikes() {
+  $.ajax({
+    type: "GET",
+    dataType: "json",
+    url: "/all-bikes/",
+    data: {},
+    success: function (response) {
+      console.log(response);
+      var arrayData = response.data;
+      var testElement = arrayData[1];
+      var stringHtml = `<label className="form-item" for="bike-select">Select a bike</label>
+               <select
+                  class="form-item"
+                  name="bikes"
+                  id="bike-select"
+                >
+                `;
+      for (var i = 0; i < arrayData.length; i++) {
+        var currentElement = arrayData[i];
+        stringHtml += `<option value="${currentElement.bike_id}">${currentElement.bike_id}</option>`;
+      }
+      $("div#selectBike").html(stringHtml);
+      stringHtml += `</select>`
+    },
+  });
+}
