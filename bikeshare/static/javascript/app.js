@@ -3,7 +3,7 @@ function login() {
    var password = document.querySelector("#password").value;
   $.ajax({
    type:"POST",
-   dataType:'json',
+   dataType:"json",
    url:"/login/",
    data:{
     "userid":userid,
@@ -33,7 +33,7 @@ function postCodeSubmit() {
   alert(postcode);
   $.ajax({
     type: "POST",
-    dataType: json,
+    dataType: "json",
     url: "/bike/postcode",
     data: {
       postcode: postcode,
@@ -53,7 +53,7 @@ function bikeIDStartSubmit() {
   alert(bikeID);
   $.ajax({
     type: "POST",
-    dataType: json,
+    dataType: "json",
     url: "/bike/bikeID",
     data: {
       bikeID: bikeID,
@@ -69,21 +69,23 @@ function bikeIDStartSubmit() {
 }
 
 function bikeIDErrorSubmit() {
-  var bikeID = document.querySelector("#bikeID").value;
-  alert(bikeID);
+  var bikeid = document.querySelector("#bikeid").value;
   $.ajax({
     type: "POST",
-    dataType: json,
-    url: "/bike/bikeID",
+    dataType: "json",
+    url: "/home/report_defective",
     data: {
-      bikeID: bikeID,
+      bikeid: bikeid,
     },
     beforeSend: function () {
-      if (bikeID == "" || bikeID == "") {
+      if (bikeid == "" || bikeid == "") {
         alert("The bikeID cannot be empty");
         return false;
       }
       return true;
+    },
+    success: function (response) {
+      alert(response.state);
     },
   });
 }
