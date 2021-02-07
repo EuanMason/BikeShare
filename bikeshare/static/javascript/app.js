@@ -116,3 +116,22 @@ function getBikes() {
     },
   });
 }
+
+// time clock
+var GetSeconds=0;
+var time=null;
+function StartCount(){
+	 time=setInterval("count()",1000);
+}
+
+function count(){
+	hours = Math.floor(GetSeconds/3600);
+	mins = Math.floor(GetSeconds/60)%60;
+	secs = GetSeconds%60
+	$("#time p").html(hours+":"+ mins+":"+ secs);
+	GetSeconds++;
+	console.info(time);
+}
+function StopCount(){
+	clearInterval(time);
+}
