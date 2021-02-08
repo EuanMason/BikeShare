@@ -3,7 +3,7 @@ function login() {
    var password = document.querySelector("#password").value;
   $.ajax({
    type:"POST",
-   dataType:'json',
+   dataType:"json",
    url:"/login/",
    data:{
     "userid":userid,
@@ -33,7 +33,7 @@ function postCodeSubmit() {
   alert(postcode);
   $.ajax({
     type: "POST",
-    dataType: json,
+    dataType: "json",
     url: "/bike/postcode",
     data: {
       postcode: postcode,
@@ -53,7 +53,7 @@ function bikeIDStartSubmit() {
   alert(bikeID);
   $.ajax({
     type: "POST",
-    dataType: json,
+    dataType: "json",
     url: "/bike/bikeID",
     data: {
       bikeID: bikeID,
@@ -69,23 +69,69 @@ function bikeIDStartSubmit() {
 }
 
 function bikeIDErrorSubmit() {
-  var bikeID = document.querySelector("#bikeID").value;
-  alert(bikeID);
+  var bikeid = document.querySelector("#bikeid").value;
   $.ajax({
     type: "POST",
-    dataType: json,
-    url: "/bike/bikeID",
+    dataType: "json",
+    url: "/home/report_defective",
     data: {
-      bikeID: bikeID,
+      bikeid: bikeid,
     },
     beforeSend: function () {
-      if (bikeID == "" || bikeID == "") {
+      if (bikeid == "" || bikeid == "") {
         alert("The bikeID cannot be empty");
         return false;
       }
       return true;
     },
+    success: function (response) {
+      alert(response.state);
+    },
   });
 }
 
+function getBikes() {
+  $.ajax({
+    type: "GET",
+    dataType: "json",
+    url: "/all-bikes/",
+    data: {},
+    success: function (response) {
+      console.log(response);
+      var arrayData = response.data;
+      var testElement = arrayData[1];
+      var stringHtml = `<label className="form-item" for="bike-select">Select a bike</label>
+               <select
+                  class="form-item"
+                  name="bikes"
+                  id="bike-select"
+                >
+                `;
+      for (var i = 0; i < arrayData.length; i++) {
+        var currentElement = arrayData[i];
+        stringHtml += `<option value="${currentElement.bike_id}">${currentElement.bike_id}</option>`;
+      }
+      $("div#selectBike").html(stringHtml);
+      stringHtml += `</select>`
+    },
+  });
+}
 
+// time clock
+var GetSeconds=0;
+var time=null;
+function StartCount(){
+	 time=setInterval("count()",1000);
+}
+
+function count(){
+	hours = Math.floor(GetSeconds/3600);
+	mins = Math.floor(GetSeconds/60)%60;
+	secs = GetSeconds%60
+	$("#time p").html(hours+":"+ mins+":"+ secs);
+	GetSeconds++;
+	console.info(time);
+}
+function StopCount(){
+	clearInterval(time);
+}
