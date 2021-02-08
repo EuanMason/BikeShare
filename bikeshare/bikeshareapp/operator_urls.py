@@ -1,9 +1,10 @@
 from django.conf.urls import url
-from bikeshareapp.report_view import *
+from bikeshareapp.operator_views import *
 
 urlpatterns = [
 
-    url(r'locations/', select_locations),
-    url(r'move/', move_bike)
+    url(r'^locations', select_locations),
+    url(r'^move_select_bike', select_move_bike),
+    url(r'^move_start', move_start)
 
 ]
