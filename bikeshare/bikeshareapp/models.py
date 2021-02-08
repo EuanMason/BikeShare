@@ -53,7 +53,7 @@ class Bike(models.Model):
     AddressLocationID = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='AddressLocationID')
 
     def __str__(self):
-        return self.BikeID
+        return str(self.BikeID)
 
     class Meta:
         db_table = 'bike'
