@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from bikeshareapp.report_view import *
+from bikeshareapp.operator_views import *
 
 urlpatterns = [
 

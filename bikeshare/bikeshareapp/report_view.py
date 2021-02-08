@@ -26,21 +26,3 @@ def report_defective(request):
         return JsonResponse({'state': 'Unknown Error.'})
 
 
-@role_check(['operator', 'manager'])
-def select_locations(request):
-    try:
-        bike_list = Bike.objects.all()
-        address_list = []
-        for bike in bike_list:
-            location_id = bike.AddressLocationID
-            location = location_id.Line1
-            address_list.append(location)
-        address_list = list(set(address_list))
-        return JsonResponse({'locations': address_list})
-    except:
-        return Http404()
-
-
-@role_check(['operator', 'manager'])
-def move_bike(request):
-    pass
