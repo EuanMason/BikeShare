@@ -35,15 +35,15 @@ def select_move_bike(request):
             for bike in bikes:
                 bike_id = bike.BikeID
                 id_list.append(bike_id)
-            return JsonResponse({'bikes_can_be_move': id_list})
+            return JsonResponse({'bikes': id_list})
         else:
-            return JsonResponse({'bikes_can_be_move': 2})
+            return JsonResponse({'bikes': "\'location\' missing"})
 
     except models.ObjectDoesNotExist:
-        return JsonResponse({"state": 3})
+        return JsonResponse({"state": "data no found"})
 
     except KeyError:
-        return JsonResponse({"state": 4})
+        return JsonResponse({"state": "key error"})
 
 
 @api_view(['POST'])
