@@ -224,8 +224,8 @@ def assignBikeToOperator(request):
     try:
         if request.data :
             request_json = request.data
-            operatorID = request_json['operator_id']
             bikeID = request_json['bike_id']
+            operatorID = request_json['operator_id']
 
             bikeFiltered = Bike.objects.filter(BikeID=bikeID)
             operatorUser = User.objects.get(userid=operatorID)

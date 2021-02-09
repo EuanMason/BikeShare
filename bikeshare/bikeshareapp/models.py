@@ -77,7 +77,7 @@ class Trip(models.Model):
     # userId = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.TripID
+        return str(self.TripID)
 
     class Meta:
         db_table = 'trip'
@@ -90,7 +90,7 @@ class Repairs(models.Model):
     AssignedOperator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assigned_operator')
 
     def __str__(self):
-        return self.RepairsID
+        return str(self.RepairsID)
 
     class Meta:
         db_table = 'repairs'
