@@ -1,19 +1,6 @@
 from django.db import models
 from django.utils import timezone
 
-
-class User(models.Model):
-    userid = models.EmailField(unique=True, primary_key=True, blank=False)
-    password = models.CharField(max_length=50, blank=False)
-    role = models.CharField(max_length=10, default='user')
-    nickname = models.CharField(max_length=50, blank=False)
-
-    class Meta:
-        managed = False
-        db_table = 'bikeshareapp_user'
-
-
-# Create your models here.
 class Wallet(models.Model):
     WalletID = models.AutoField(primary_key=True)
     Credit = models.FloatField()
@@ -28,6 +15,21 @@ class Wallet(models.Model):
 
     class Meta:
         db_table = 'wallet'
+
+class User(models.Model):
+    userid = models.EmailField(unique=True, primary_key=True, blank=False)
+    password = models.CharField(max_length=50, blank=False)
+    role = models.CharField(max_length=10, default='user')
+    nickname = models.CharField(max_length=50, blank=False)
+    WalletID = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+
+    class Meta:
+        managed = False
+        db_table = 'bikeshareapp_user'
+
+
+# Create your models here.
+
 
 
 class Address(models.Model):
@@ -68,6 +70,8 @@ class Trip(models.Model):
     EndAddress = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='EndAddress')
     Cost = models.FloatField()
     PaymentStatus = models.IntegerField()
+    UserID = models.ForeignKey(User, on_delete=models.CASCADE)
+
     # Test = models.IntegerField(default=-1)
     # userId = models.ForeignKey(User, on_delete=models.CASCADE)
 
@@ -76,3 +80,16 @@ class Trip(models.Model):
 
     class Meta:
         db_table = 'trip'
+
+class Repairs(models.Model):
+    RepairsID = models.AutoField(primary_key=True)
+    BikeID = models.ForeignKey(Bike, on_delete=models.CASCADE)
+    ReportedUser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reported_user')
+    Issue = models.CharField(max_length=400)
+    AssignedOperator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assigned_operator')
+
+    def __str__(self):
+        return self.RepairsID
+
+    class Meta:
+        db_table = 'repairs'

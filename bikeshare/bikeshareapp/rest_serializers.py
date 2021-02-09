@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User, Group
 from rest_framework import serializers
-from bikeshareapp.models import Wallet, Address, Bike, Trip, User
+from bikeshareapp.models import Wallet, Address, Bike, Trip, User, Repairs
 
 class WalletSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -16,6 +16,25 @@ class WalletSerializer(serializers.HyperlinkedModelSerializer):
                   'credit',
                   'payment'
                   ]
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+
+    user_id = serializers.CharField(source='userid')
+    user_pass = serializers.CharField(source='password')
+    user_role = serializers.CharField(source='role')
+    user_nickname = serializers.CharField(source='nickname')
+    wallet_id = WalletSerializer(source='WalletID')
+
+
+    class Meta:
+        model = User
+        fields = [
+            'user_id',
+            'user_pass',
+            'user_role',
+            'user_nickname',
+            'wallet_id'
+        ]
 
 class AddressSerializer(serializers.HyperlinkedModelSerializer):
 
@@ -69,6 +88,7 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
     end_address = AddressSerializer(source='EndAddress')
     cost = serializers.FloatField(source='Cost')
     payment_status = serializers.IntegerField(source='PaymentStatus')
+    user = UserSerializer(source='userid')
 
     class Meta:
         model = Trip
@@ -81,21 +101,24 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
             'start_address', 
             'end_address',
             'cost',
-            'payment_status'
+            'payment_status',
+            'user_id'
         ]
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+class RepairsSerializer(serializers.HyperlinkedModelSerializer):
 
-    user_id = serializers.CharField(source='userid')
-    user_pass = serializers.CharField(source='password')
-    user_role = serializers.CharField(source='role')
-    user_nickname = serializers.CharField(source='nickname')
+    repairs_id = serializers.IntegerField(source='RepairsID')
+    bike_id = serializers.IntegerField(source='BikeID')
+    reported_user = serializers.IntegerField(source='ReportedUser')
+    issue = serializers.CharField(source='Issue')
+    assigned_operator = serializers.IntegerField(source='AssignedOperator')
 
     class Meta:
-        model = User
-        fields = [
-            'user_id',
-            'user_pass',
-            'user_role',
-            'user_nickname'
-        ]
+        model = Address
+        fields = ['repairs_id',
+                  'bike_id',
+                  'reported_user',
+                  'issue',
+                  'assigned_operator'
+                  ]
+

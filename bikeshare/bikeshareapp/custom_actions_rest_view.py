@@ -1,6 +1,8 @@
+import requests
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+
 from bikeshareapp.models import Wallet, Address, Bike, Trip, User
 from bikeshareapp.rest_serializers import WalletSerializer, AddressSerializer, BikeSerializer, TripSerializer, UserSerializer
 
@@ -76,6 +78,21 @@ def getUser(request):
     }
     return Response(response, status=status.HTTP_200_OK)
 
+@api_view(['GET'])
+def getLocation(request):
+    if 'address' in request.GET:
+        address = request.GET['address']
+        api_key = "AIzaSyD0SRiJJupEmCVUyh-WnilaPP00dcgBb_c"
+        url = "https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}".format(address, api_key)
+
+        result = requests.get(url).json()
+        response = {
+            'data': result['results'][0]["geometry"]["location"]
+        }
+        return Response(response, status=status.HTTP_200_OK)
+    else:
+        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 #/* -------------------------------------------------------------------------- */
 #/*                            Customer Actions                                */
 #/* -------------------------------------------------------------------------- */
@@ -90,20 +107,29 @@ def addMoney(request):
     else:
         return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-# ID of bike and location bike left at
-# Delete old location if no linked bikes
+# TODO ID of bike and location bike left at
+# TODO  Delete old location if no linked bikes?
+
 @api_view(['POST'])
 def returnBike(request):
     if request.method == 'POST':
         bike_id = request.query_params.get('bike_id')
         location = request.query_params.get('location')
-        data=request.data
-        bike = BikeSerializer(Bike.objects.filter(BikeID=bike_id))
 
+        trip = Trip.objects.first.filter(BikeID=bike_id, EndTime="")
 
         queryset = Address.objects.filter(Line1=location)
         if not queryset:
-            Address.objects.update_or_create(Line1=location)
+            address = location.replace(" ", "+")
+            api_key = "AIzaSyD0SRiJJupEmCVUyh-WnilaPP00dcgBb_c"
+            url = "https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}".format(address, api_key)
+            result = requests.get(url).json()
+            town = result['results'][0]["address_components"][0]["long_name"]
+            postcode = result['results'][0]["address_components"][4]["long_name"]
+            lat = result['results'][0]["geometry"]["location"]["lat"]
+            long = result['results'][0]["geometry"]["location"]["lng"]
+
+            Address.objects.update_or_create(Line1=location, City=town, Postcode= postcode,Longitude=lat, Latitude=long)
 
         queryset = Address.objects.get(Line1=location)
         serialized = AddressSerializer(queryset, many=False)
