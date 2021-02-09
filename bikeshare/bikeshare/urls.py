@@ -50,11 +50,14 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('add-money-to-wallet/', addMoney),
     path('all-bikes/', getAllBikes),
-    path('avail-bikes/', getAvailableBikes),
     path('get_user/', getUser),
     path('return_bike/', returnBike),
     path('get_Location/', getLocation),
     path('locations-of-availabe-bikes/', getAvailableLocationsOfBikes),
     url(r'^home/report_defective', report_defective),
-    url(r'^operator/', include('bikeshareapp.operator_urls'))
+    url(r'^operator/', include('bikeshareapp.operator_urls')),
+    url('get-operators/', getAllOperators),
+    url('assign-defective-to-operator/', assignBikeToOperator),
+    url('get-operators-defectives/', getAssignedBikes),
+    path('all-bikes-location/<str:location>/', getAllBikesBasedOnLocation),
 ]

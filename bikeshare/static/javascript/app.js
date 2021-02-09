@@ -68,27 +68,52 @@ function bikeIDStartSubmit() {
   });
 }
 
+//// Start: Report Bike ////
+
 function bikeIDErrorSubmit() {
-  var bikeid = document.querySelector("#bikeid").value;
-  $.ajax({
-    type: "POST",
-    dataType: "json",
-    url: "/home/report_defective",
-    data: {
-      bikeid: bikeid,
-    },
-    beforeSend: function () {
-      if (bikeid == "" || bikeid == "") {
+    var bikeid = document.querySelector("#bikeid").value;
+    $.ajax({
+        type: "POST",
+        dataType: "json",
+        url: "/home/report_defective",
+        data: {
+            bikeid: bikeid,
+        },
+        beforeSend: function() {
+            if (bikeid == "" || bikeid == "") {
+                alert("The bikeID cannot be empty");
+                return false;
+            }
+            return true;
+        },
+        success: function() {
+            //alert(response.state)
+            HideModal();
+        },
+    });
+}
+
+function CallModal() {
+    var bikeid = document.querySelector("#bikeid").value;
+    if (bikeid == "" || bikeid == "") {
         alert("The bikeID cannot be empty");
         return false;
-      }
-      return true;
-    },
-    success: function (response) {
-      alert(response.state);
-    },
-  });
-}
+    } else {
+        $('#ReportModal').modal('show');
+    };
+};
+
+function HideModal() {
+    var $modal = $('#ReportModal');
+    $modal.on('click', '#ConfirmReport', function(e) {
+        $modal.modal("hide");
+        $modal.on("hidden.bs.modal", function() {
+            alert("Success! - This report has been sent to us.");
+        });
+    });
+};
+
+//// End: Report Bike ////
 
 function getBikes() {
   $.ajax({

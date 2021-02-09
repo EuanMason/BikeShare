@@ -2,6 +2,17 @@ from django.contrib.auth.models import User, Group
 from rest_framework import serializers
 from bikeshareapp.models import Wallet, Address, Bike, Trip, User, Repairs
 
+class UserLimitedSerializer(serializers.HyperlinkedModelSerializer):
+    user_id = serializers.CharField(source='userid')
+    user_nickname = serializers.CharField(source='nickname')
+
+    class Meta:
+        model = User
+        fields = [
+            'user_id',
+            'user_nickname'
+        ]
+
 class WalletSerializer(serializers.HyperlinkedModelSerializer):
 
     # This should not be done, but the DB doesn't follow the 
@@ -67,6 +78,7 @@ class BikeSerializer(serializers.HyperlinkedModelSerializer):
     # This is the case if you need to retrieve the object
     location = AddressSerializer(source='AddressLocationID')
     #address_location_id = serializers.IntegerField(source='AddressLocationID')
+    operator = UserLimitedSerializer(source = 'OperatorID')
 
     class Meta:
         model = Bike
@@ -74,7 +86,8 @@ class BikeSerializer(serializers.HyperlinkedModelSerializer):
                   'rent',
                   'is_available',
                   'is_defective',
-                  'location'
+                  'location',
+                  'operator'
                   ]
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
