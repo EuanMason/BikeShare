@@ -7,7 +7,7 @@ class Wallet(models.Model):
     PaymentMethods = models.BinaryField()
 
     def __str__(self):
-        return self.WalletID
+        return str(self.WalletID)
 
     # If we need to override the basisc acitions
     # def save(self, *args, **kwargs):
@@ -21,7 +21,7 @@ class User(models.Model):
     password = models.CharField(max_length=50, blank=False)
     role = models.CharField(max_length=10, default='user')
     nickname = models.CharField(max_length=50, blank=False)
-    WalletID = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    WalletID = models.ForeignKey(Wallet, blank=True, null=True, on_delete=models.CASCADE)
 
     class Meta:
         managed = False
