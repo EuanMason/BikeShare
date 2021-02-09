@@ -18,11 +18,7 @@
     />
       <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-    <link
-      rel="stylesheet"
-      media="screen and (max-width: 768px)"
-      href="css/mobile.css"
-    />
+
 
      <style type="text/css">
       #map {
@@ -120,12 +116,12 @@
               />
             </div>
             <div class="form-group">
-              <button
-                class="submitbox btn btn-primary"
-                onclick="getBikes()"
-              >
-                Search
-              </button>
+{#              <button#}
+{#                class="submitbox btn btn-primary"#}
+{#                onclick="getBikes()"#}
+{#              >#}
+{#                Search#}
+{#              </button>#}
               <button
                 class="submitbox btn btn-primary"
                 onclick="showMap()"
@@ -159,7 +155,7 @@
               </button>
               <!--- Report Button -->
               <button
-                class="btn btn-danger"
+                class="btn btn-dark"
                 onclick="CallModal()"
               >
                 Report A Problem!
@@ -189,17 +185,6 @@
                     </div>
                 </div>
               </div>
-              
-              <div id="time">
-				<p>00:00:00</p>
-			  </div>
-
-			  <button
-                class="reportbox btn btn-dark"
-                onclick="StopCount()"
-              >
-                Stop
-              </button>
             </div>
           </form>
         </div>
