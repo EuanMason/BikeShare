@@ -51,6 +51,7 @@ class Bike(models.Model):
     IsAvailable = models.IntegerField(null=False)
     IsDefective = models.IntegerField(null=False)
     AddressLocationID = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='AddressLocationID')
+    OperatorID = models.ForeignKey(User, blank=True, null=True, on_delete=models.PROTECT, related_name='OperatorID')
 
     def __str__(self):
         return str(self.BikeID)
