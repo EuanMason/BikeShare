@@ -39,6 +39,12 @@
         .card-bodyquote {
             padding-top: 70px;
         }
+        .new-color {
+            background-color: #eee;
+        }
+        .modal-header {
+            padding: 10px;
+        }
 </style>
 
 </head>
@@ -89,7 +95,9 @@
         <br />
         <br />
         <input
-          class="btn btn-dark"
+          class="btn btn-dark "
+          data-toggle="modal"
+          data-target="#payment"
           id="pause"
           type="button"
           value="Return Bike"
@@ -100,6 +108,24 @@
       </div>
     </div>
 
+    <div class="modal fade" id="payment">
+    <div class="modal-lg modal-dialog ">
+      <div class="modal-content">
+        <div class="text-black-50 new-color modal-header">
+          <h5 class="modal-title">Make a payment</h5>
+          <button class="close" data-dismiss="modal">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <p class="h4 text-center">Your total cost is: </p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-dark" data-dismiss="modal">Check out</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
 
     <script
