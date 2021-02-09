@@ -126,28 +126,28 @@
     <script src="{% static "javascript/app.js" %}"></script>
 
     <script>
-        // 可以将查找标签节点的操作进行简化
+        // simplify searching tags
         function $(id){
             return document.getElementById(id);
         }
         window.onload = function(){
-            var count = 0; //开始计数以后，累加的总秒数
+            var count = 0; // total seconds
             var timer = null;
             clearInterval(timer);
-                timer = setInterval(function(){// 如果在这个位置写var，相当于timer是这个start点击事件定义的一个变量，在其他点击事件中不能使用
+                timer = setInterval(function(){
                     count++;
-                    // 需要改变页面上的时分秒数
+                    // change time in the page
                     $("id_S").innerHTML = showNum(count % 60);
                     $("id_M").innerHTML = showNum(parseInt(count / 60) % 60);
                     $("id_H").innerHTML = showNum(parseInt(count / 3600 ));
                 },1000);
 
             $("pause").onclick = function(){
-                // 取消定时器
+                // quit timer
                 clearInterval(timer);
             }
         }
-            // 处理单个数字
+            // single number
             function showNum(num){
                 if(num<10){
                     return "0" + num;
