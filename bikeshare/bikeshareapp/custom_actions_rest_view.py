@@ -400,14 +400,6 @@ def getAllOperators(request):
         }
         return Response(response, status=status.HTTP_200_OK)
     except Exception as e:
-<<<<<<< HEAD
         # print("----------------------********************")
         # print(e)
         return  Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-=======
-        #print("----------------------********************")
-        #print(e)
-        return  Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
->>>>>>> 3d4b7dd72c2fd6c7607d23a0f59464fb30368e61
