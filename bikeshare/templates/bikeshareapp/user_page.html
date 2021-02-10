@@ -55,12 +55,19 @@
         url: "/locations-of-availabe-bikes/",
         data: {},
         success: function (response) {
-          const latLng = new google.maps.LatLng(55.858791649199794, -4.24896240234375);
-          new google.maps.Marker({
-            position: latLng,
-            map: map,
-            title: "Bikeid: 1",
-          })
+            //alert(response.location);
+            var arrayData = response.location;
+            for (let i = 0; i < arrayData.length; i++) {
+                var longitudeData = arrayData[i].longitude;
+                var latitudeData = arrayData[i].latitude;
+
+                const latLng = new google.maps.LatLng(latitudeData, longitudeData);
+                new google.maps.Marker({
+                    position: latLng,
+                    map: map,
+                    title: "Bikeid: "+(i+1),
+                })
+            }
         },
       });
      }
