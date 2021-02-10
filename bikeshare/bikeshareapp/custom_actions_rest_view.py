@@ -163,7 +163,7 @@ def recalculateMoney(request):
                 currenCredit = currentWallet.Credit
 
             if currenCredit + amountToCharge < 0:
-                return Response(response, status=status.HTTP_409_CONFLICT)
+                return Response(status=status.HTTP_409_CONFLICT)
             
             currentWallet.Credit = currenCredit + amountToCharge
             currentWallet.save()
