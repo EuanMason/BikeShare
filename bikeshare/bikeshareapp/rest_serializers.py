@@ -19,7 +19,7 @@ class WalletSerializer(serializers.HyperlinkedModelSerializer):
     #   acording nomeclature for json response
     wallet_id = serializers.IntegerField(source='WalletID')
     credit = serializers.FloatField(source='Credit')
-    payment = serializers.FloatField(source='Credit')
+    payment = serializers.FloatField(source='PaymentMethods')
 
     class Meta:
         model = Wallet

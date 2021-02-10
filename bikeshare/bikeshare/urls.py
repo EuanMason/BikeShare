@@ -50,7 +50,7 @@ urlpatterns = [
     path('register/', register_views.register_view),
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('add-money-to-wallet/', addMoney),
+    path('recalculate-wallet/', recalculateMoney),
     path('all-bikes/', getAllBikes),
     path('get_user/', getUser),
     path('return_bike/', returnBike),
@@ -64,4 +64,6 @@ urlpatterns = [
     path('all-bikes-location/<str:location>/', getAllBikesBasedOnLocation),
     url(r'^home/rent_bike/$', rent_views.rent_view),
     url(r'^home/rent_bike/start_rent_bike/(?P<trip_id>\d+)/$', rent_views.start_rent_view),
+    url('bike-repaired-by-operator-start/',startRepairABike),
+    url('bike-repaired-by-operator-end/',endRepairABike),
 ]
