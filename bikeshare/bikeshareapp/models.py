@@ -66,7 +66,7 @@ class Trip(models.Model):
     BikeID = models.ForeignKey(Bike, on_delete=models.CASCADE)
     Date = models.DateTimeField(default=timezone.now)
     StartTime = models.DateTimeField(default=timezone.now)
-    EndTime = models.DateTimeField(default=timezone.now)
+    EndTime = models.DateTimeField(blank=True)
     StartAddress = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='StartAddress')
     EndAddress = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='EndAddress')
     Cost = models.FloatField()

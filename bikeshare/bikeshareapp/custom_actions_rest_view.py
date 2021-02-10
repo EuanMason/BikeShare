@@ -1,4 +1,5 @@
 import requests
+from django.db.models.functions import datetime
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -156,13 +157,16 @@ def addMoney(request):
 # TODO  Delete old location if no linked bikes?
 
 @api_view(['POST'])
-@role_check(['user'])
+# @role_check(['user'])
 def returnBike(request):
     if request.method == 'POST':
         bike_id = request.query_params.get('bike_id')
         location = request.query_params.get('location')
-
-        trip = Trip.objects.first.filter(BikeID=bike_id, EndTime="")
+        # user_id = request.COOKIES['userid']
+        user_id = 1
+        trip = Trip.objects.filter(EndTime=None, BikeID=bike_id, UserID=user_id)
+        town = ""
+        postcode = ""
 
         queryset = Address.objects.filter(Line1=location)
         if not queryset:
@@ -170,21 +174,39 @@ def returnBike(request):
             api_key = "AIzaSyD0SRiJJupEmCVUyh-WnilaPP00dcgBb_c"
             url = "https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}".format(address, api_key)
             result = requests.get(url).json()
-            town = result['results'][0]["address_components"][0]["long_name"]
-            postcode = result['results'][0]["address_components"][4]["long_name"]
+            for i in result['results'][0]["address_components"]:
+                if "postal_town" in i["types"]:
+                    town = i["long_name"]
+
+            for i in result['results'][0]["address_components"]:
+                if "postal_code" in i["types"]:
+                    postcode = i["long_name"]
+
+            # town = result['results'][0]["address_components"][0]["long_name"]
+            # postcode = result['results'][0]["address_components"][4]["long_name"]
             lat = result['results'][0]["geometry"]["location"]["lat"]
             long = result['results'][0]["geometry"]["location"]["lng"]
 
-            Address.objects.update_or_create(Line1=location, City=town, Postcode= postcode,Longitude=lat, Latitude=long)
+            Address.objects.update_or_create(Line1=location, City=town, Postcode=postcode, Longitude=lat, Latitude=long)
 
         queryset = Address.objects.get(Line1=location)
+
         serialized = AddressSerializer(queryset, many=False)
-        Bike.objects.filter(BikeID=bike_id).update(AddressLocationID=serialized.data["location_id"])
+
+        endTime = datetime.Now()
+        cost = endTime - trip.StartTime
+        cost = cost.total_seconds()/3600
+        cost = cost * Bike.objects.get(BikeID=bike_id).Rent
+
+
+        Bike.objects.get(BikeID=bike_id).update(AddressLocationID=serialized.data["location_id"])
+        trip.update(EndTime=endTime, EndAddress=serialized.data["location_id"], Cost=cost)
+
 
 
         response = {
-            "Status":"OK!!!!!!!",
-            "request": serialized.data["location_id"]
+            "Status" : "OK!!!!!!!",
+            "request": serialized.data
         }
         return Response(response, status=status.HTTP_200_OK)
     else:
