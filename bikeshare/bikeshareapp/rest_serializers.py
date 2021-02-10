@@ -78,7 +78,7 @@ class BikeSerializer(serializers.HyperlinkedModelSerializer):
     # This is the case if you need to retrieve the object
     location = AddressSerializer(source='AddressLocationID')
     #address_location_id = serializers.IntegerField(source='AddressLocationID')
-    operator = UserLimitedSerializer(source = 'OperatorID')
+    #operator = UserLimitedSerializer(source = 'OperatorID')
 
     class Meta:
         model = Bike
@@ -87,7 +87,7 @@ class BikeSerializer(serializers.HyperlinkedModelSerializer):
                   'is_available',
                   'is_defective',
                   'location',
-                  'operator'
+                  #'operator'
                   ]
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
