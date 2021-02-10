@@ -213,6 +213,91 @@ def getAssignedBikes(request):
     except:
         return  Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
+@api_view(['POST'])
+@role_check(['operator'])
+def startRepairABike(request):
+    print(request)
+    try:
+        if request.COOKIES :
+            data = request.data
+            if data:
+                user_id = request.COOKIES['userid']
+                bike_id = request_json['bike_id']
+
+                bikes = Bike.objects.filter(BikeID=bikeID)
+                user = User.objects.get(userid=operatorID)
+                if len(bikes)!=1:
+                    return  Response(status=status.HTTP_400_BAD_REQUEST)
+
+                bikes=bikes[0]
+                if bikes.IsDefective:
+                    bikes.IsAvailable = 0
+                    bikes.IsDefective = 0
+                bikes.save()
+            
+                serialized = BikeSerializer(bikes,many=False)
+                data_to_return = serialized.data
+                response = {
+                    'Data':  data_to_return
+                }
+    except Exception as e:
+        print("----------------------********************")
+        print(e)
+        return  Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@role_check(['operator'])
+def getAssignedBikes(request):
+
+    userid = request.COOKIES['userid']
+    # role = request.COOKIES['role']
+
+    try:
+        bikesFiltered = Bike.objects.filter(OperatorID=userid)
+        serialized = BikeSerializer(bikesFiltered, many=True)
+        data_to_return = serialized.data
+
+        response = {
+            'data': data_to_return
+        }
+        return Response(response, status=status.HTTP_200_OK)
+    except:
+        return  Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@role_check(['operator'])
+def endRepairABike(request):
+    print(request)
+    try:
+        if request.COOKIES :
+            data = request.data
+            if data:
+                user_id = request.COOKIES['userid']
+                bike_id = request_json['bike_id']
+
+                bikes = Bike.objects.filter(BikeID=bikeID)
+                user = User.objects.get(userid=operatorID)
+                if len(bikes)!=1:
+                    return  Response(status=status.HTTP_400_BAD_REQUEST)
+
+                bikes=bikes[0]
+                if bikes.IsDefective:
+                    bikes.IsAvailable = 1
+                    bikes.IsDefective = 1
+                    bikes.OperatorID = None
+                bikes.save()
+            
+                serialized = BikeSerializer(bikes,many=False)
+                data_to_return = serialized.data
+                response = {
+                    'Data':  data_to_return
+                }
+    except Exception as e:
+        print("----------------------********************")
+        print(e)
+        return  Response(status=status.HTTP_400_BAD_REQUEST)
+
+            
 #/* -------------------------------------------------------------------------- */
 #/*                             Manager Actions                                */
 #/* -------------------------------------------------------------------------- */
@@ -275,3 +360,5 @@ def getAllOperators(request):
         # print("----------------------********************")
         # print(e)
         return  Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
