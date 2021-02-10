@@ -18,7 +18,7 @@
     />
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-    <title>Rent A Bike</title>
+    <title>Title</title>
     <style>
         html, body {
             height: 100%;
@@ -38,12 +38,6 @@
         }
         .card-bodyquote {
             padding-top: 70px;
-        }
-        .new-color {
-            background-color: #eee;
-        }
-        .modal-header {
-            padding: 10px;
         }
 </style>
 
@@ -80,14 +74,10 @@
       <div class="card-body">
         <div class="card bg-dark text-white p-3">
           <blockquote class="card-bodyquote">
-            <span class="display-4" id="id_H">00</span
-            ><span class="display-4">:</span>
-            <span class="display-4" id="id_M">00</span
-            ><span class="display-4">:</span>
-            <span class="display-4" id="id_S">00</span>
+              <p class="h1">Your total payment is: </p>
             <footer class="blockquote-footer">
               <small>
-                <cite>Enjoy your trip and explore your city</cite>
+               <cite>Enjoy your trip and explore your city</cite>
               </small>
             </footer>
           </blockquote>
@@ -95,12 +85,10 @@
         <br />
         <br />
         <input
-          class="btn btn-dark "
-          data-toggle="modal"
-          data-target="#payment"
+          class="btn btn-dark"
           id="pause"
           type="button"
-          value="Return Bike"
+          value="Make a payment"
         />
       </div>
       <div class="card-footer text-muted">
@@ -108,24 +96,6 @@
       </div>
     </div>
 
-    <div class="modal fade" id="payment">
-    <div class="modal-lg modal-dialog ">
-      <div class="modal-content">
-        <div class="text-black-50 new-color modal-header">
-          <h5 class="modal-title">Make a payment</h5>
-          <button class="close" data-dismiss="modal">
-            <span>&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          <p class="h4 text-center">Your total cost is: </p>
-        </div>
-        <div class="modal-footer">
-          <button class="btn btn-dark" data-dismiss="modal">Check out</button>
-        </div>
-      </div>
-    </div>
-  </div>
 
 
     <script
@@ -150,37 +120,5 @@
     ></script>
 
     <script src="{% static "javascript/app.js" %}"></script>
-
-    <script>
-        // simplify searching tags
-        function $(id){
-            return document.getElementById(id);
-        }
-        window.onload = function(){
-            var count = 0; // total seconds
-            var timer = null;
-            clearInterval(timer);
-                timer = setInterval(function(){
-                    count++;
-                    // change time in the page
-                    $("id_S").innerHTML = showNum(count % 60);
-                    $("id_M").innerHTML = showNum(parseInt(count / 60) % 60);
-                    $("id_H").innerHTML = showNum(parseInt(count / 3600 ));
-                },1000);
-
-            $("pause").onclick = function(){
-                // quit timer
-                clearInterval(timer);
-            }
-        }
-            // single number
-            function showNum(num){
-                if(num<10){
-                    return "0" + num;
-                }else{
-                    return num;
-                }
-            }
-    </script>
 </body>
 </html>

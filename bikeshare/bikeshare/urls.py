@@ -38,6 +38,7 @@ router.register(r'wallet', rest_views.WalletViewSet, basename='wallet')
 router.register(r'address', rest_views.AddressViewSet)
 router.register(r'bike', rest_views.BikeViewSet)
 router.register(r'trip', rest_views.TripViewSet)
+router.register(r'repairs', rest_views.RepairsViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -49,7 +50,7 @@ urlpatterns = [
     path('register/', register_views.register_view),
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('add-money-to-wallet/', addMoney),
+    path('recalculate-wallet/', recalculateMoney),
     path('all-bikes/', getAllBikes),
     path('get_user/', getUser),
     path('return_bike/', returnBike),

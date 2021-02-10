@@ -19,7 +19,7 @@ class WalletSerializer(serializers.HyperlinkedModelSerializer):
     #   acording nomeclature for json response
     wallet_id = serializers.IntegerField(source='WalletID')
     credit = serializers.FloatField(source='Credit')
-    payment = serializers.FloatField(source='Credit')
+    payment = serializers.FloatField(source='PaymentMethods')
 
     class Meta:
         model = Wallet
@@ -78,7 +78,7 @@ class BikeSerializer(serializers.HyperlinkedModelSerializer):
     # This is the case if you need to retrieve the object
     location = AddressSerializer(source='AddressLocationID')
     #address_location_id = serializers.IntegerField(source='AddressLocationID')
-    operator = UserLimitedSerializer(source = 'OperatorID')
+    #operator = UserLimitedSerializer(source = 'OperatorID')
 
     class Meta:
         model = Bike
@@ -87,7 +87,7 @@ class BikeSerializer(serializers.HyperlinkedModelSerializer):
                   'is_available',
                   'is_defective',
                   'location',
-                  'operator'
+                  #'operator'
                   ]
 
 class TripSerializer(serializers.HyperlinkedModelSerializer):
@@ -115,23 +115,25 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
             'end_address',
             'cost',
             'payment_status',
-            'user_id'
+            'user'
         ]
 
 class RepairsSerializer(serializers.HyperlinkedModelSerializer):
 
     repairs_id = serializers.IntegerField(source='RepairsID')
-    bike_id = serializers.IntegerField(source='BikeID')
-    reported_user = serializers.IntegerField(source='ReportedUser')
+    bike_id = BikeSerializer(source='BikeID')
+    reported_user = UserLimitedSerializer(source='ReportedUser')
     issue = serializers.CharField(source='Issue')
-    assigned_operator = serializers.IntegerField(source='AssignedOperator')
+    assigned_operator = UserLimitedSerializer(source='AssignedOperator')
+    in_progress = serializers.IntegerField(source="InProgress")
 
     class Meta:
-        model = Address
+        model = Repairs
         fields = ['repairs_id',
                   'bike_id',
                   'reported_user',
                   'issue',
-                  'assigned_operator'
+                  'assigned_operator',
+                  'in_progress'
                   ]
 
