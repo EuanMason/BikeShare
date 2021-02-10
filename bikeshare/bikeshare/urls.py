@@ -50,7 +50,7 @@ urlpatterns = [
     path('register/', register_views.register_view),
     path('', include(router.urls)),
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    path('add-money-to-wallet/', addMoney),
+    path('recalculate-wallet/', recalculateMoney),
     path('all-bikes/', getAllBikes),
     path('get_user/', getUser),
     path('return_bike/', returnBike),

@@ -115,7 +115,7 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
             'end_address',
             'cost',
             'payment_status',
-            'user_id'
+            'user'
         ]
 
 class RepairsSerializer(serializers.HyperlinkedModelSerializer):

@@ -144,7 +144,7 @@ def getLocation(request):
 #/* -------------------------------------------------------------------------- */
 @api_view(['POST'])
 @role_check(['user'])
-def addMoney(request):
+def recalculateMoney(request):
     try:
         if request.data :
             request_json = request.data
