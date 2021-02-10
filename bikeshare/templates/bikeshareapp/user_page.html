@@ -18,11 +18,7 @@
     />
       <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-    <link
-      rel="stylesheet"
-      media="screen and (max-width: 768px)"
-      href="css/mobile.css"
-    />
+
 
      <style type="text/css">
       #map {
@@ -59,12 +55,19 @@
         url: "/locations-of-availabe-bikes/",
         data: {},
         success: function (response) {
-          const latLng = new google.maps.LatLng(55.858791649199794, -4.24896240234375);
-          new google.maps.Marker({
-            position: latLng,
-            map: map,
-            title: "Bikeid: 1",
-          })
+            //alert(response.location);
+            var arrayData = response.location;
+            for (let i = 0; i < arrayData.length; i++) {
+                var longitudeData = arrayData[i].longitude;
+                var latitudeData = arrayData[i].latitude;
+
+                const latLng = new google.maps.LatLng(latitudeData, longitudeData);
+                new google.maps.Marker({
+                    position: latLng,
+                    map: map,
+                    title: "Bikeid: "+(i+1),
+                })
+            }
         },
       });
      }
@@ -120,12 +123,12 @@
               />
             </div>
             <div class="form-group">
-              <button
-                class="submitbox btn btn-primary"
-                onclick="getBikes()"
-              >
-                Search
-              </button>
+{#              <button#}
+{#                class="submitbox btn btn-primary"#}
+{#                onclick="getBikes()"#}
+{#              >#}
+{#                Search#}
+{#              </button>#}
               <button
                 class="submitbox btn btn-primary"
                 onclick="showMap()"
@@ -152,13 +155,14 @@
             <div class="form-group">
               <button
                 class="startbox btn btn-primary"
-                onclick="StartCount()"
+                type="button"
+                onclick="bikeIDStartSubmit()"
               >
                 Start
               </button>
               <!--- Report Button -->
               <button
-                class="btn btn-danger"
+                class="btn btn-dark"
                 onclick="CallModal()"
               >
                 Report A Problem!
@@ -188,17 +192,6 @@
                     </div>
                 </div>
               </div>
-              
-              <div id="time">
-				<p>00:00:00</p>
-			  </div>
-
-			  <button
-                class="reportbox btn btn-dark"
-                onclick="StopCount()"
-              >
-                Stop
-              </button>
             </div>
           </form>
         </div>

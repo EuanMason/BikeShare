@@ -26,6 +26,7 @@ from django.urls import include, path
 from rest_framework import routers
 from bikeshareapp import views  # progsd-bike-share\bikeshare\bikeshareapp\views.py
 from bikeshareapp import rest_views  # progsd-bike-share\bikeshare\bikeshareapp\rest_views.py
+from bikeshareapp import rent_views  # progsd-bike-share\bikeshare\bikeshareapp\rent_views.py
 from bikeshareapp.report_view import *
 from bikeshareapp.custom_actions_rest_view import *
 
@@ -37,6 +38,7 @@ router.register(r'wallet', rest_views.WalletViewSet, basename='wallet')
 router.register(r'address', rest_views.AddressViewSet)
 router.register(r'bike', rest_views.BikeViewSet)
 router.register(r'trip', rest_views.TripViewSet)
+router.register(r'repairs', rest_views.RepairsViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -60,4 +62,6 @@ urlpatterns = [
     url('assign-defective-to-operator/', assignBikeToOperator),
     url('get-operators-defectives/', getAssignedBikes),
     path('all-bikes-location/<str:location>/', getAllBikesBasedOnLocation),
+    url(r'^home/rent_bike/$', rent_views.rent_view),
+    url(r'^home/rent_bike/start_rent_bike/(?P<trip_id>\d+)/$', rent_views.start_rent_view),
 ]

@@ -7,7 +7,7 @@ class Wallet(models.Model):
     PaymentMethods = models.BinaryField()
 
     def __str__(self):
-        return self.WalletID
+        return str(self.WalletID)
 
     # If we need to override the basisc acitions
     # def save(self, *args, **kwargs):
@@ -21,7 +21,7 @@ class User(models.Model):
     password = models.CharField(max_length=50, blank=False)
     role = models.CharField(max_length=10, default='user')
     nickname = models.CharField(max_length=50, blank=False)
-    WalletID = models.ForeignKey(Wallet, on_delete=models.CASCADE)
+    WalletID = models.ForeignKey(Wallet, blank=True, null=True, on_delete=models.CASCADE)
 
     class Meta:
         managed = False
@@ -53,7 +53,7 @@ class Bike(models.Model):
     IsAvailable = models.IntegerField(null=False)
     IsDefective = models.IntegerField(null=False)
     AddressLocationID = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='AddressLocationID')
-    OperatorID = models.ForeignKey(User, blank=True, null=True, on_delete=models.PROTECT, related_name='OperatorID')
+    # OperatorID = models.ForeignKey(User, blank=True, null=True, on_delete=models.PROTECT, related_name='OperatorID')
 
     def __str__(self):
         return str(self.BikeID)
@@ -77,7 +77,7 @@ class Trip(models.Model):
     # userId = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.TripID
+        return str(self.TripID)
 
     class Meta:
         db_table = 'trip'
@@ -88,9 +88,10 @@ class Repairs(models.Model):
     ReportedUser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reported_user')
     Issue = models.CharField(max_length=400)
     AssignedOperator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assigned_operator')
+    InProgress = models.IntegerField(null=False, default=0)
 
     def __str__(self):
-        return self.RepairsID
+        return str(self.RepairsID) + ' - ' + str(self.AssignedOperator.userid)
 
     class Meta:
         db_table = 'repairs'

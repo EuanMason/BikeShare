@@ -49,21 +49,32 @@ function postCodeSubmit() {
 }
 
 function bikeIDStartSubmit() {
-  var bikeID = document.querySelector("#bikeID").value;
-  alert(bikeID);
+  var bikeid = document.querySelector("#bikeid").value;
   $.ajax({
     type: "POST",
     dataType: "json",
-    url: "/bike/bikeID",
+    url: "/home/rent_bike/",
+    async:false,
     data: {
-      bikeID: bikeID,
+      bikeid: bikeid,
     },
     beforeSend: function () {
-      if (bikeID == "" || bikeID == "") {
+      if (bikeid == "" || bikeid == "") {
         alert("The bikeID cannot be empty");
         return false;
       }
       return true;
+    },
+    success: function(response){
+        if(response.state==2){
+          location.href="rent_bike/start_rent_bike/"+ response.trip_id + "/";
+        }
+        else if(response.state==0){
+          alert("Please input correct BikeID!");
+        }
+        else if(response.state==1){
+          alert("This Bike cannot be used now!");
+        }
     },
   });
 }
