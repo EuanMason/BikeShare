@@ -14,8 +14,8 @@ from rest_framework.decorators import api_view, schema
 
 
 from bikeshareapp.serializers import UserSerializer, GroupSerializer
-from .models import Wallet, Address, Bike, Trip
-from .rest_serializers import WalletSerializer, AddressSerializer, BikeSerializer, TripSerializer
+from .models import Wallet, Address, Bike, Trip, Repairs
+from .rest_serializers import WalletSerializer, AddressSerializer, BikeSerializer, TripSerializer, RepairsSerializer
 
 # Some people say the logic shouldn't be on the views
 # Some other say the opposite.
@@ -49,4 +49,9 @@ class TripViewSet(viewsets.ModelViewSet):
     queryset = Trip.objects.all()
     serializer_class = TripSerializer 
     #permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
+
+class RepairsViewSet(viewsets.ModelViewSet):
+    queryset = Repairs.objects.all()
+    serializer_class = RepairsSerializer
     permission_classes = [permissions.AllowAny]

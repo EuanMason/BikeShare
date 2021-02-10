@@ -3,14 +3,16 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from bikeshareapp.models import Wallet, Address, Bike, Trip, User
-from bikeshareapp.rest_serializers import WalletSerializer, AddressSerializer, BikeSerializer, TripSerializer, UserSerializer, UserLimitedSerializer
+from bikeshareapp.models import Wallet, Address, Bike, Trip, User, Repairs
+from bikeshareapp.rest_serializers import WalletSerializer, AddressSerializer, BikeSerializer, TripSerializer, UserSerializer, UserLimitedSerializer, RepairsSerializer
 
 from util.decorators import auth_required, role_check
 import json
 from django.http import HttpResponse, JsonResponse
 
 from django.db.models import Count
+from django.db.models import F
+
 
 
 # The file rest_views.py is only to have the basic stuff
@@ -202,15 +204,18 @@ def getAssignedBikes(request):
     # role = request.COOKIES['role']
 
     try:
-        bikesFiltered = Bike.objects.filter(OperatorID=userid)
-        serialized = BikeSerializer(bikesFiltered, many=True)
+        #bikesFiltered = Bike.objects.filter(OperatorID=userid)
+        repairFiltered = Repairs.objects.filter(AssignedOperator=userid)
+        serialized = RepairsSerializer(repairFiltered, many=True)
         data_to_return = serialized.data
 
         response = {
             'data': data_to_return
         }
         return Response(response, status=status.HTTP_200_OK)
-    except:
+    except Exception as e:
+        #print("----------------------********************")
+        #print(e)
         return  Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 #/* -------------------------------------------------------------------------- */
@@ -226,22 +231,31 @@ def assignBikeToOperator(request):
             request_json = request.data
             bikeID = request_json['bike_id']
             operatorID = request_json['operator_id']
+            report = request_json['report']
 
             bikeFiltered = Bike.objects.filter(BikeID=bikeID)
             operatorUser = User.objects.get(userid=operatorID)
+            reportUser = User.objects.get(userid=report['report_user'])
             if len(bikeFiltered) != 1:
                 return  Response(status=status.HTTP_400_BAD_REQUEST)
-    
+
             bikeFiltered = bikeFiltered[0]
-            bikeFiltered.OperatorID = operatorUser
+            
+            # Create the object if not exists
+            repair, created = Repairs.objects.get_or_create(
+                BikeID = bikeFiltered.BikeID,
+                ReportedUser = reportUser,
+                Issue = report['issue'],
+                AssignedOperator = operatorUser,
+                InProgress = 1
+            )
+
             bikeFiltered.IsDefective = 1
             bikeFiltered.save()
 
-            serialized = BikeSerializer(bikeFiltered, many=False)
-            #serialized.is_valid(raise_exception=True)
-            #self.perform_update(serializer)
+            serialized = RepairsSerializer(repair, many=False)
             data_to_return = serialized.data
-    
+
             response = {
                 'data': data_to_return
             }
@@ -249,8 +263,8 @@ def assignBikeToOperator(request):
         return Response(response, status=status.HTTP_200_OK)
 
     except Exception as e:
-        print("----------------------********************")
-        print(e)
+        #print("----------------------********************")
+        #print(e)
         return  Response(status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET'])
@@ -258,20 +272,19 @@ def assignBikeToOperator(request):
 def getAllOperators(request):
 
     try:
-        # SELECT 
-        #   USERID,
-        #   NICKNAME
-        # FROM USERS
-        # LEFT JOIN BIKES
-        # ON USERID = OPERATORID
-        # WHERE ROLE='OPERATOR'
-        # GROUP BY USERID
-        result = User.objects.filter(role='operator').values('userid','nickname').annotate(bikes=Count('OperatorID'))    
+        #result = User.objects.filter(role='operator').values('userid','nickname').annotate(bikes=Count('OperatorID'))    
+        result = (Repairs.objects.filter(InProgress=0).values('AssignedOperator','AssignedOperator__nickname')
+            .annotate(
+                op_id=F('AssignedOperator'),
+                op_name=F('AssignedOperator__nickname'),
+                bikes=Count('BikeID'))
+            .values('op_id', 'op_name', 'bikes')) 
+        #print(result)
         response = {
             'data': result
         }
         return Response(response, status=status.HTTP_200_OK)
     except Exception as e:
-        # print("----------------------********************")
-        # print(e)
+        #print("----------------------********************")
+        #print(e)
         return  Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)

@@ -88,9 +88,10 @@ class Repairs(models.Model):
     ReportedUser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reported_user')
     Issue = models.CharField(max_length=400)
     AssignedOperator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assigned_operator')
+    InProgress = models.IntegerField(null=False, default=0)
 
     def __str__(self):
-        return str(self.RepairsID)
+        return str(self.RepairsID) + ' - ' + str(self.AssignedOperator.userid)
 
     class Meta:
         db_table = 'repairs'

@@ -121,17 +121,19 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
 class RepairsSerializer(serializers.HyperlinkedModelSerializer):
 
     repairs_id = serializers.IntegerField(source='RepairsID')
-    bike_id = serializers.IntegerField(source='BikeID')
-    reported_user = serializers.IntegerField(source='ReportedUser')
+    bike_id = BikeSerializer(source='BikeID')
+    reported_user = UserLimitedSerializer(source='ReportedUser')
     issue = serializers.CharField(source='Issue')
-    assigned_operator = serializers.IntegerField(source='AssignedOperator')
+    assigned_operator = UserLimitedSerializer(source='AssignedOperator')
+    in_progress = serializers.IntegerField(source="InProgress")
 
     class Meta:
-        model = Address
+        model = Repairs
         fields = ['repairs_id',
                   'bike_id',
                   'reported_user',
                   'issue',
-                  'assigned_operator'
+                  'assigned_operator',
+                  'in_progress'
                   ]
 
