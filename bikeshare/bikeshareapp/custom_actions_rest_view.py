@@ -145,14 +145,42 @@ def getLocation(request):
 @api_view(['POST'])
 @role_check(['user'])
 def addMoney(request):
-    if request.method == 'POST':
-        response = {
-            "Status":"OK!!!!!!!",
-            "request": request.data
-        }
-        return Response(response, status=status.HTTP_200_OK)
-    else:
-        return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
+    try:
+        if request.data :
+            request_json = request.data
+            amountToCharge = request_json['amount']
+            userid = request.COOKIES['userid']
+
+            currentUser = User.objects.get(userid=userid)
+            currentWallet = Wallet.objects.get(WalletID=currentUser.WalletID.WalletID)
+            if not currentWallet:
+                return  Response(status=status.HTTP_404_NOT_FOUND)
+    
+            currenCredit = 0
+            if currentWallet.Credit < 0 or currentWallet.Credit == None:
+                currenCredit = 0
+            else:
+                currenCredit = currentWallet.Credit
+
+            
+            currentWallet.Credit = currenCredit + amountToCharge
+            currentWallet.save()
+
+            serialized = WalletSerializer(currentWallet, many=False)
+            data_to_return = serialized.data
+
+            response = {
+                'data': data_to_return
+            }
+
+            return Response(response, status=status.HTTP_200_OK)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
+    except Exception as e:
+        print("----------------------********************")
+        print(e)
+        return  Response(status=status.HTTP_400_BAD_REQUEST)
 
 # TODO ID of bike and location bike left at
 # TODO  Delete old location if no linked bikes?
@@ -225,7 +253,7 @@ def getAssignedBikes(request):
 @api_view(['POST'])
 @role_check(['manager'])
 def assignBikeToOperator(request):
-    print(request)
+    # print(request)
     try:
         if request.data :
             request_json = request.data

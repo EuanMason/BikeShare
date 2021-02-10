@@ -16,6 +16,9 @@ class Wallet(models.Model):
     class Meta:
         db_table = 'wallet'
 
+    def __str__(self):
+        return str(self.WalletID) 
+
 class User(models.Model):
     userid = models.EmailField(unique=True, primary_key=True, blank=False)
     password = models.CharField(max_length=50, blank=False)
