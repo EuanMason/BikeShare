@@ -94,14 +94,14 @@ class TripSerializer(serializers.HyperlinkedModelSerializer):
 
     trip_id = serializers.IntegerField(source='TripID')
     bike = BikeSerializer(source='BikeID')
-    date = serializers.DateField(source='Date')
-    start_time = serializers.DateField(source='StartTime')
-    end_time = serializers.DateField(source='EndTime')
+    date = serializers.DateTimeField(source='Date', format="%Y-%m-%d %H:%M:%S")
+    start_time = serializers.DateTimeField(source='StartTime', format="%Y-%m-%d %H:%M:%S")
+    end_time = serializers.DateTimeField(source='EndTime', format="%Y-%m-%d %H:%M:%S")
     start_address = AddressSerializer(source='StartAddress')
     end_address = AddressSerializer(source='EndAddress')
     cost = serializers.FloatField(source='Cost')
     payment_status = serializers.IntegerField(source='PaymentStatus')
-    user = UserSerializer(source='userid')
+    user = UserSerializer(source='UserID')
 
     class Meta:
         model = Trip

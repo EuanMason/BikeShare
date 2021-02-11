@@ -1,6 +1,7 @@
 import requests
 from django.db.models.functions import datetime
 from django.utils import timezone
+import dateutil.parser
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -197,7 +198,8 @@ def returnBike(request):
         location = request.query_params.get('location')
         user_id = request.COOKIES['userid']
 
-        trip = Trip.objects.filter(BikeID=bike_id, UserID=user_id, Cost=0.0)
+        trip = Trip.objects.filter(BikeID=bike_id, Cost=0.0)
+        serialized_trip = TripSerializer(Trip.objects.get(BikeID=bike_id, Cost=0.0))
         town = ""
         postcode = ""
 
@@ -215,8 +217,6 @@ def returnBike(request):
                 if "postal_code" in i["types"]:
                     postcode = i["long_name"]
 
-            # town = result['results'][0]["address_components"][0]["long_name"]
-            # postcode = result['results'][0]["address_components"][4]["long_name"]
             lat = result['results'][0]["geometry"]["location"]["lat"]
             long = result['results'][0]["geometry"]["location"]["lng"]
 
@@ -226,18 +226,19 @@ def returnBike(request):
 
         serialized = AddressSerializer(queryset, many=False)
 
-        # end_time = datetime.datetime.now()
-        end_time = timezone.now()
-        # cost = serialized_trip.data["start_time"]
-        # cost = cost.total_seconds()/3600
-        # cost = cost * Bike.objects.get(BikeID=bike_id).Rent
-        Bike.objects.filter(BikeID=bike_id).update(AddressLocationID=serialized.data["location_id"])
-        # Bike.objects.update_or_create(BikeID=bike_id, AddressLocationID=serialized.data["location_id"])
-        trip.update(EndTime=end_time, EndAddress=serialized.data["location_id"])
+        rent = Bike.objects.get(BikeID=bike_id).Rent
+        end_time = timezone.now().replace(tzinfo=None)
+        cost = end_time - dateutil.parser.parse(serialized_trip.data["start_time"])
+        cost = cost.total_seconds()/3600
+        cost = cost * rent
+        if cost < (rent/6):
+            cost = rent/6
+        Bike.objects.filter(BikeID=bike_id).update(AddressLocationID=serialized.data["location_id"], IsAvailable=1)
+        trip.update(EndTime=end_time, EndAddress=serialized.data["location_id"], Cost=cost)
 
         response = {
             "Status" : "OK!!!!!!!",
-            "request": serialized.data
+            "request": serialized_trip.data
         }
         return Response(response, status=status.HTTP_200_OK)
     else:
