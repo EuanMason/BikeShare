@@ -4,7 +4,7 @@ from django.utils import timezone
 class Wallet(models.Model):
     WalletID = models.AutoField(primary_key=True)
     Credit = models.FloatField()
-    PaymentMethods = models.BinaryField()
+    PaymentMethods = models.BinaryField(default=None)
 
     def __str__(self):
         return str(self.WalletID)

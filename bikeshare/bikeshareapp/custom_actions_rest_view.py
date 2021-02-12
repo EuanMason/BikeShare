@@ -132,6 +132,32 @@ def getUser(request):
     return Response(response, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
+@role_check(['user'])
+def getWallet(request):
+
+    user_id = request.COOKIES['userid']
+    queryset = User.objects.get(userid=user_id)
+    serialized = UserSerializer(queryset, many=False)
+
+    try:
+        # If wallet ID hasn't been assigned
+        if serialized.data["wallet_id"] == 0 or serialized.data["wallet_id"] is None:
+            #Create new wallet
+            wallet = Wallet.objects.create(Credit=0.0)
+            #Connect user to wallet
+            User.objects.filter(userid=user_id).update(WalletID=wallet.WalletID)
+            queryset = User.objects.get(userid=user_id)
+    except ValueError:
+        "wallet already connected"
+
+    serialized = UserSerializer(queryset, many=False)
+
+    response = {
+        'data': serialized.data["wallet_id"]
+    }
+    return Response(response, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
 def getLocation(request):
     if 'address' in request.GET:
         address = request.GET['address']
@@ -153,7 +179,7 @@ def getLocation(request):
 @role_check(['user'])
 def recalculateMoney(request):
     try:
-        if request.data :
+        if request.data:
             request_json = request.data
             amountToCharge = request_json['amount']
             userid = request.COOKIES['userid']
@@ -191,18 +217,17 @@ def recalculateMoney(request):
         print(e)
         return  Response(status=status.HTTP_400_BAD_REQUEST)
 
-# TODO ID of bike and location bike left at
-# TODO  Delete old location if no linked bikes?
+
 
 @api_view(['POST'])
-@role_check(['user'])
+# @role_check(['user'])
 def returnBike(request):
     if request.method == 'POST':
         bike_id = request.query_params.get('bike_id')
         location = request.query_params.get('location')
-        user_id = request.COOKIES['userid']
-
-        trip = Trip.objects.filter(BikeID=bike_id, Cost=0.0)
+        # user_id = request.COOKIES['userid']
+        user_id = "testuser@test.com"
+        trip = Trip.objects.filter(BikeID=bike_id, UserID=user_id, Cost=0.0)
         serialized_trip = TripSerializer(Trip.objects.get(BikeID=bike_id, Cost=0.0))
         town = ""
         postcode = ""
@@ -239,6 +264,8 @@ def returnBike(request):
             cost = rent/6
         Bike.objects.filter(BikeID=bike_id).update(AddressLocationID=serialized.data["location_id"], IsAvailable=1)
         trip.update(EndTime=end_time, EndAddress=serialized.data["location_id"], Cost=cost)
+        serialized_trip = TripSerializer(Trip.objects.get(BikeID=bike_id, Cost=cost))
+
 
         response = {
             "Status" : "OK!!!!!!!",
