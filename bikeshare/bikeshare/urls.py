@@ -53,6 +53,7 @@ urlpatterns = [
     path('recalculate-wallet/', recalculateMoney),
     path('all-bikes/', getAllBikes),
     path('get_user/', getUser),
+    path('get_wallet/', getWallet),
     path('return_bike/', returnBike),
     path('get_Location/', getLocation),
     path('locations-of-availabe-bikes/', getAvailableLocationsOfBikes),
