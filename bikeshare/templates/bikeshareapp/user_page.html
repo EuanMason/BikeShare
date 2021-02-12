@@ -264,7 +264,7 @@
         <div class="start-form bg-light p-3">
           <h2 class="m-heading">Let's start!</h2>
           <h3 class="m-heading text-danger" id="alertInitPostcode">Enter the postcode of your current location below</h3>
-          <form action="#">
+          <div>
             <div class="form-group">
               <label for="postcode">Post Code: </label>
               <input
@@ -277,21 +277,13 @@
               />
             </div>
             <div class="form-group">
-{#              <button#}
-{#                class="submitbox btn btn-primary"#}
-{#                onclick="getBikes()"#}
-{#              >#}
-{#                Search#}
-{#              </button>#}
               <button
                 class="submitbox btn btn-primary"
                 onclick="showMap()"
               >
                 Show on map
               </button>
-              <div id="selectBike" class="form-group">
-
-              </div>
+              <div id="selectBike" class="form-group"></div>
             </div>
 
             <div id="ride-bike">
@@ -336,7 +328,7 @@
               </div>
             </div>
             
-          </form>
+          </div>
         </div>
       </div>
     </section>

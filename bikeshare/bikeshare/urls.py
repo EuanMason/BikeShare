@@ -62,8 +62,12 @@ urlpatterns = [
     url('assign-defective-to-operator/', assignBikeToOperator),
     url('get-operators-defectives/', getAssignedBikes),
     path('all-bikes-location/<str:location>/', getAllBikesBasedOnLocation),
-    url(r'^home/rent_bike/$', rent_views.rent_view),
-    url(r'^home/rent_bike/start_rent_bike/(?P<trip_id>\d+)/$', rent_views.start_rent_view),
+    path('rent_bike/', rent_views.rent_view),
+    path(
+        'start_rent_bike/<int:trip_id>/',
+        rent_views.start_rent_view
+    ),
+    # url(r'^home/rent_bike/start_rent_bike/(?P<trip_id>\d+)/$', rent_views.start_rent_view),
     url('bike-repaired-by-operator-start/',startRepairABike),
     url('bike-repaired-by-operator-end/',endRepairABike),
 ]

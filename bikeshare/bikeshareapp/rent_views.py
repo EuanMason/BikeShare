@@ -13,6 +13,7 @@ from rest_framework.decorators import api_view
 
 @api_view(['POST'])
 @auth_required
+@role_check(['user'])
 def rent_view(request):
     if request.POST:
         bike_id = str(request.POST.get("bikeid"))
@@ -44,9 +45,11 @@ def rent_view(request):
                             )
         # response = JsonResponse({'state': 2, 'trip_id': trip_id})
         # response.set_cookie('trip_id', trip_id)
+        # response = HttpResponseRedirect('/home/rent_bike/start_rent_bike/'+str(trip_id)+'/')
+        # return response
         return JsonResponse({'state': 2, 'trip_id': str(trip_id)})
 
 @api_view(['GET'])
-@auth_required
+@role_check(['user'])
 def start_rent_view(request, trip_id):
     return render(request, 'bikeshareapp/rent_bike.html', {'trip_id': trip_id})
