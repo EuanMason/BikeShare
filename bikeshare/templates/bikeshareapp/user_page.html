@@ -35,10 +35,12 @@
 
     <script>
     let map;
+    let imgs = "{% static "img/" %}"
+    let markersList = []
     function initMap() {
         map = new google.maps.Map(document.getElementById("map"), {
-            center: { lat: 55.864239, lng: -4.251806 },
-            zoom: 8,
+            center: { lat: 55.860789, lng: -4.250311 },
+            zoom: 12,
             mapTypeId: "terrain",
         });
          // Create a <script> tag and set the USGS URL as the source.
@@ -46,9 +48,11 @@
         script.src =
         "https://developers.google.com/maps/documentation/javascript/examples/json/earthquake_GeoJSONP.js";
         document.getElementsByTagName("head")[0].appendChild(script);
+        showInitMap();
+        $('#ride-bike').hide();
     }
 
-    function showMap (results) {
+    function showInitMap (results) {
       $.ajax({
         type: "GET",
         dataType: "json",
@@ -58,19 +62,168 @@
             //alert(response.location);
             var arrayData = response.location;
             for (let i = 0; i < arrayData.length; i++) {
+                var currentData = arrayData[i];
                 var longitudeData = arrayData[i].longitude;
                 var latitudeData = arrayData[i].latitude;
 
                 const latLng = new google.maps.LatLng(latitudeData, longitudeData);
-                new google.maps.Marker({
+                const marker = new google.maps.Marker({
                     position: latLng,
                     map: map,
-                    title: "Bikeid: "+(i+1),
+                    title: "location_id_: "+(currentData.location_id),
                 })
+
+                const contentPopup = 
+                '<div id="content">' +
+                '<div id="siteNotice">' +
+                "</div>" +
+                '<h3 id="firstHeading" class="firstHeading">'+currentData.line_1+'</h3>' +
+                '<div id="bodyContent">' +
+                "<p><b>Postcode:</b> "+currentData.postcode+"</p>" +
+                "<p><b>City:</b> "+currentData.city+"</p>" +
+                "</div>" +
+                "</div>";
+
+                const infoPopup = new google.maps.InfoWindow({
+                  content: contentPopup,
+                });
+
+                marker.addListener("click", () => {
+                  infoPopup.open(map, marker);
+                });
             }
         },
       });
      }
+
+     function showMap(results) {
+       // TODO: Calculate 
+       var postcode = $( "#postcode" ).val()
+       postcode = postcode.replace(' ','')
+       if (postcode.length > 0) {
+         $.ajax({
+          type: "GET",
+          dataType: "json",
+          url: "/all-bikes-location/"+postcode,
+          data: {},
+          success: function (response) {
+            // hide the text that ask for the postcode at the beginning
+            $( "#alertInitPostcode" ).hide();
+            // Show the area to select bikes
+            $('#ride-bike').show();
+            // Clean markers 
+            for (let j = 0; j < markersList.length; j++) {
+              markersList[j].setMap(null);
+            }
+            markersList = []
+
+            var loc = response.data.loc
+            var bikes = response.data.bikes
+            // Create latlong object to center the map
+            var myLatLong = new google.maps.LatLng(loc.latitude, loc.longitude);
+            window.setTimeout(() => {
+              map.panTo(myLatLong);
+              map.setZoom(22);
+              map.setCenter(myLatLong);
+            }, 30);
+            
+            const image = {
+              url: imgs + '/bike.png',
+              origin: new google.maps.Point(0, 0),
+              scaledSize: new google.maps.Size(60, 60),
+            };
+
+            // To show bike icon on maps
+            var pi = Math.PI
+            var degrees = 180;
+            var radious = 0.00001;
+            var randomess_l1 = 0
+            var randomess_l2 = 360
+            
+            var stringHtml = '';
+            for (let i = 0; i < bikes.length; i++) {
+              var currentBike = bikes[i];
+
+              // Map stuff
+              var longitudeData = currentBike.location.longitude;
+              var latitudeData = currentBike.location.latitude;
+              // Random position
+              // From: https://gis.stackexchange.com/questions/37615/how-to-place-markers-on-the-outline-of-a-circle-in-google-maps
+              // Accesed on: Feb, 11 2021
+              var randomness_degrees = Math.floor(Math.random() * (randomess_l2 - randomess_l1) + randomess_l1);
+              var longitudeBike = Math.cos(randomness_degrees * pi / 180 ) * radious + longitudeData;
+              var latitudeBike = Math.sin(randomness_degrees * pi / 180 ) * radious + latitudeData;
+
+              const latLngBike = new google.maps.LatLng(latitudeBike, longitudeBike);
+              const marker = new google.maps.Marker({
+                position: latLngBike,
+                map: map,
+                title: "bike_: "+(currentBike.bike_id),
+                icon: image,
+                label: {
+                  text: "No. "+currentBike.bike_id,
+                  color: "#ffffff",
+                  fontSize: "20px",
+                  fontWeight: "bold"
+                },
+              })
+              markersList.push(marker)
+
+              // Html stuff
+              if (i%3 == 0){
+                if (i > 0) {
+                  stringHtml+='</div>';
+                  stringHtml+='<div class="row">';
+                }
+                else if(i == 0) {
+                  stringHtml+='<div class="row">';
+                }
+              }
+
+
+              stringHtml+='<div class="col">';
+              stringHtml+='	<div class="row">';
+              stringHtml+='	  <div class="col grid-img-style">';
+              stringHtml+='		<img class="grid-style " src="'+imgs+'/bike.png" alt="bike">';
+              stringHtml+='		<h4>Bike '+"No. "+currentBike.bike_id+'</h4>';
+              stringHtml+='	  </div>';
+              stringHtml+='	</div>';
+              stringHtml+='	<div class="row">';
+              stringHtml+='	  <div class="col">';
+              stringHtml+='		<button';
+              stringHtml+='		  class="startbox btn btn-primary grid-style"';
+              stringHtml+='		  type="button"';
+              stringHtml+='		  onclick="bikeIDStartSubmit('+currentBike.bike_id+')"';
+              stringHtml+='		>';
+              stringHtml+='		  Start';
+              stringHtml+='		</button>';
+              stringHtml+='	  </div>';
+              stringHtml+='	  <div class="col">';
+              stringHtml+='		<!--- Report Button -->';
+              stringHtml+='		<button';
+              stringHtml+='		  class="btn btn-dark grid-style"';
+              stringHtml+='		  onclick="CallModal('+currentBike.bike_id+')"';
+              stringHtml+='		>';
+              stringHtml+='		  Report A Problem!';
+              stringHtml+='		</button>';
+              stringHtml+='	  </div>';
+              stringHtml+='	</div>';
+              stringHtml+='</div>';
+            }
+
+            // Html stuff p2
+            var neededOnGrid = 3 - (bikes.length % 3);
+            for(let x = 0; x < neededOnGrid; x++) {
+              stringHtml+='<div class="col"></div>';
+            }
+            stringHtml+='</div>'
+
+            $('#main-container-bikes').html(stringHtml);
+          },
+        });
+       }
+     }
+
     </script>
 
     <title>Bike Sharing</title>
@@ -109,7 +262,8 @@
     <section id="main-page">
       <div class="container">
         <div class="start-form bg-light p-3">
-          <h2 class="m-heading">Let's start</h2>
+          <h2 class="m-heading">Let's start!</h2>
+          <h3 class="m-heading text-danger" id="alertInitPostcode">Enter the postcode of your current location below</h3>
           <form action="#">
             <div class="form-group">
               <label for="postcode">Post Code: </label>
@@ -140,59 +294,48 @@
               </div>
             </div>
 
-
-            <div class="form-group">
-              <label for="bikeID">Bike ID: </label>
-              <input
-                class="form-control"
-                placeholder="Enter bike ID"
-                type="text"
-                id="bikeid"
-                class="box"
-                required
-              />
-            </div>
-            <div class="form-group">
-              <button
-                class="startbox btn btn-primary"
-                type="button"
-                onclick="bikeIDStartSubmit()"
-              >
-                Start
-              </button>
-              <!--- Report Button -->
-              <button
-                class="btn btn-dark"
-                onclick="CallModal()"
-              >
-                Report A Problem!
-              </button>
-              <!--- Report Window --->
-              <div class="modal fade bd-report-modal-sm" tabindex="-1" role="dialog" 
-              id="ReportModal">
-                <div class="modal-dialog modal-dialog-centered" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Report A Problem!</h5>
-                        </div>
-                        <div class="modal-body">                            
-                            <p>Would you like to report a problem with this bike? </p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary btn-block"       
-                            id="ConfirmReport" 
-                            onclick="bikeIDErrorSubmit()">
-                            Confirm
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-block" 
-                            data-dismiss="modal">
-                            Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <div id="ride-bike">
+              <!--<div class="form-group">
+                <label for="bikeID">Bike ID: </label>
+                <input
+                  class="form-control"
+                  placeholder="Enter bike ID"
+                  type="text"
+                  id="bikeid"
+                  class="box"
+                  required
+                />
+              </div> -->
+              <div class="form-group container" id="main-container-bikes">
+                
               </div>
             </div>
+
+            <!--- Report Window --->
+            <div class="modal fade bd-report-modal-sm" tabindex="-1" role="dialog"  id="ReportModal">
+              <div class="modal-dialog modal-dialog-centered" role="document">
+                  <div class="modal-content">
+                      <div class="modal-header">
+                          <h5 class="modal-title">Report A Problem!</h5>
+                      </div>
+                      <div class="modal-body">                            
+                          <p>Would you like to report a problem with this bike? </p>
+                      </div>
+                      <div class="modal-footer">
+                          <button type="button" class="btn btn-primary btn-block"       
+                          id="ConfirmReport" 
+                          onclick="bikeIDErrorSubmit()">
+                          Confirm
+                          </button>
+                          <button type="button" class="btn btn-secondary btn-block" 
+                          data-dismiss="modal">
+                          Close
+                          </button>
+                      </div>
+                  </div>
+              </div>
+            </div>
+            
           </form>
         </div>
       </div>

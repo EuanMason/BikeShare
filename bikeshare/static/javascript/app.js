@@ -48,8 +48,8 @@ function postCodeSubmit() {
   });
 }
 
-function bikeIDStartSubmit() {
-  var bikeid = document.querySelector("#bikeid").value;
+function bikeIDStartSubmit(value) {
+  var bikeid = value;//document.querySelector("#bikeid").value;
   $.ajax({
     type: "POST",
     dataType: "json",
@@ -104,8 +104,8 @@ function bikeIDErrorSubmit() {
     });
 }
 
-function CallModal() {
-    var bikeid = document.querySelector("#bikeid").value;
+function CallModal(value) {
+    var bikeid = value;//document.querySelector("#bikeid").value;
     if (bikeid == "" || bikeid == "") {
         alert("The bikeID cannot be empty");
         return false;

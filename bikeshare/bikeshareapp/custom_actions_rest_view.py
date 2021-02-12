@@ -66,7 +66,6 @@ def getAllBikesBasedOnLocation(request, location):
     # nickname = request.COOKIES['nickname']
     role = request.COOKIES['role']
     location = location.replace('+',' ')
-    print(location)
     try:
         locations = Address.objects.filter(Line1=location)
         if len(locations) == 0:
@@ -75,25 +74,30 @@ def getAllBikesBasedOnLocation(request, location):
             return Response(status=status.HTTP_404_NOT_FOUND)
         
         locationObj = locations[0]
-        print(locationObj.LocationID)
         if role == 'user':
             # For customer we only need the available bikes and not defective
             queryset = Bike.objects.filter(IsAvailable = 1, IsDefective = 0, AddressLocationID=locationObj.LocationID)
             serialized = BikeSerializer(queryset, many=True)
             data_to_return = serialized.data
+            serialized_loc = AddressSerializer(locationObj, many=False)
+            data_loc = serialized_loc.data
         elif role == 'operator':
             # For operator we need to show the bikes that are available and 
             #   it does not matter if it is defective
             queryset = Bike.objects.filter(IsAvailable = 1, AddressLocationID=locationObj.LocationID)
             serialized = BikeSerializer(queryset, many=True)
             data_to_return = serialized.data
+            serialized_loc = AddressSerializer(locationObj, many=False)
+            data_loc = serialized_loc.data
         elif role == 'manager':
             queryset = Bike.objects.filter(AddressLocationID=locationObj.LocationID)
             serialized = BikeSerializer(queryset, many=True)
             data_to_return = serialized.data
+            serialized_loc = AddressSerializer(locationObj, many=False)
+            data_loc = serialized_loc.data
     
         response = {
-            'data': data_to_return
+            'data': {'bikes':data_to_return, 'loc': data_loc}
         }
         return Response(response, status=status.HTTP_200_OK)
 
