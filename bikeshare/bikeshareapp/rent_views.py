@@ -10,6 +10,13 @@ import time
 from util.decorators import auth_required, role_check
 from .models import *
 from rest_framework.decorators import api_view
+import datetime
+
+from django.utils import timezone
+import dateutil.parser
+
+from bikeshareapp.rest_serializers import TripSerializer
+
 
 @api_view(['POST'])
 @auth_required
@@ -52,4 +59,11 @@ def rent_view(request):
 @api_view(['GET'])
 @role_check(['user'])
 def start_rent_view(request, trip_id):
-    return render(request, 'bikeshareapp/rent_bike.html', {'trip_id': trip_id})
+    currentTrip = Trip.objects.get(TripID=trip_id)
+    serialized_trip = TripSerializer(currentTrip)
+    
+    end_time = timezone.now().replace(tzinfo=None)
+    current = end_time - dateutil.parser.parse(serialized_trip.data["start_time"])
+    current = round(current.total_seconds())
+
+    return render(request, 'bikeshareapp/rent_bike.html', {'trip_id': trip_id, 'current_time': current})

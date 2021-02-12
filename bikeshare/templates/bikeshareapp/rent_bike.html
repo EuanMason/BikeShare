@@ -157,7 +157,8 @@
             return document.getElementById(id);
         }
         window.onload = function(){
-            var count = 0; // total seconds
+            var current = "{{current_time}}";
+            var count = current; // total seconds
             var timer = null;
             clearInterval(timer);
                 timer = setInterval(function(){
