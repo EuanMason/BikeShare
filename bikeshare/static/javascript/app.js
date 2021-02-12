@@ -48,17 +48,21 @@ function postCodeSubmit() {
   });
 }
 
-function bikeIDStartSubmit() {
-  var bikeid = document.querySelector("#bikeid").value;
+function bikeIDStartSubmit(value) {
+  console.log("--------------------------------------++++++++++++++++++++++++++++++++++++")
+  var bikeid = value;//document.querySelector("#bikeid").value;
+  xcsrft = "bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT";
   $.ajax({
     type: "POST",
     dataType: "json",
-    url: "/home/rent_bike/",
+    url: "/rent_bike/",
     async:false,
     data: {
       bikeid: bikeid,
     },
-    beforeSend: function () {
+    beforeSend: function (request) {
+      request.setRequestHeader("X-CSRFToken", xcsrft);
+      console.log(request)
       if (bikeid == "" || bikeid == "") {
         alert("The bikeID cannot be empty");
         return false;
@@ -67,7 +71,7 @@ function bikeIDStartSubmit() {
     },
     success: function(response){
         if(response.state==2){
-          location.href="rent_bike/start_rent_bike/"+ response.trip_id + "/";
+          location.href="/start_rent_bike/"+ response.trip_id + "/";
         }
         else if(response.state==0){
           alert("Please input correct BikeID!");
@@ -104,8 +108,8 @@ function bikeIDErrorSubmit() {
     });
 }
 
-function CallModal() {
-    var bikeid = document.querySelector("#bikeid").value;
+function CallModal(value) {
+    var bikeid = value;//document.querySelector("#bikeid").value;
     if (bikeid == "" || bikeid == "") {
         alert("The bikeID cannot be empty");
         return false;
