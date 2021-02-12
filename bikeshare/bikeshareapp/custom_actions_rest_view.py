@@ -224,8 +224,7 @@ def returnBike(request):
     if request.method == 'POST':
         bike_id = request.query_params.get('bike_id')
         location = request.query_params.get('location')
-        # user_id = request.COOKIES['userid']
-        user_id = "testuser@test.com"
+        user_id = request.COOKIES['userid']
         trip = Trip.objects.filter(BikeID=bike_id, UserID=user_id, Cost=0.0)
         serialized_trip = TripSerializer(Trip.objects.get(BikeID=bike_id, Cost=0.0))
         town = ""
