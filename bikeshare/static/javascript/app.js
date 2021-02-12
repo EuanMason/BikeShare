@@ -51,7 +51,7 @@ function postCodeSubmit() {
 function bikeIDStartSubmit(value) {
   console.log("--------------------------------------++++++++++++++++++++++++++++++++++++")
   var bikeid = value;//document.querySelector("#bikeid").value;
-  xcsrft = "bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT";
+  xcsrft = "bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
   $.ajax({
     type: "POST",
     dataType: "json",

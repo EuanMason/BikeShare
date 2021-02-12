@@ -220,7 +220,6 @@ def recalculateMoney(request):
 
 
 @api_view(['POST'])
-# @role_check(['user'])
 def returnBike(request):
     if request.method == 'POST':
         bike_id = request.query_params.get('bike_id')
@@ -268,7 +267,7 @@ def returnBike(request):
 
 
         response = {
-            "Status" : "OK!!!!!!!",
+            "status" : "OK",
             "request": serialized_trip.data
         }
         return Response(response, status=status.HTTP_200_OK)

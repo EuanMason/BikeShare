@@ -66,4 +66,7 @@ def start_rent_view(request, trip_id):
     current = end_time - dateutil.parser.parse(serialized_trip.data["start_time"])
     current = round(current.total_seconds())
 
-    return render(request, 'bikeshareapp/rent_bike.html', {'trip_id': trip_id, 'current_time': current})
+    current_bike = dict(serialized_trip.data["bike"])['bike_id']
+
+
+    return render(request, 'bikeshareapp/rent_bike.html', {'trip_id': trip_id, 'current_time': current, 'current_bike': current_bike})
