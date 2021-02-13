@@ -68,5 +68,10 @@ def start_rent_view(request, trip_id):
 
     current_bike = dict(serialized_trip.data["bike"])['bike_id']
 
+    if (serialized_trip.data['end_time'] != serialized_trip.data['start_time'] ):
+        return render(request, 'bikeshareapp/rent_bike.html', {'ended': 1})
+    
+    print("++++++++++++++")
+    print(trip_id)
 
     return render(request, 'bikeshareapp/rent_bike.html', {'trip_id': trip_id, 'current_time': current, 'current_bike': current_bike})

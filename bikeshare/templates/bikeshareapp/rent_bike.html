@@ -55,23 +55,32 @@
     <script>
       var timer = null
       var bike = null
+      var ended = -1
       $(function() {
         var current = "{{current_time}}";
         bike = "{{current_bike}}"
-        var count = current; 
-        timer = null;
-        clearInterval(timer);
-        timer = setInterval(function(){
-            count++;
-            // change time in the page
-            $("#id_S").text(showNum(count % 60));
-            $("#id_M").text(showNum(parseInt(count / 60) % 60));
-            $("#id_H").text(showNum(parseInt(count / 3600 )));
-        },1000);
+        ended = "{{ended}}"
+        if (ended == 1) {
+          $("#ended_text").text("THIS TRIP ENDED.... HAVE A GOOD DAY")
+          $("#form-location-end").hide()
+        }
+        else {
+          var count = current; 
+          timer = null;
+          clearInterval(timer);
+          timer = setInterval(function(){
+              count++;
+              // change time in the page
+              $("#id_S").text(showNum(count % 60));
+              $("#id_M").text(showNum(parseInt(count / 60) % 60));
+              $("#id_H").text(showNum(parseInt(count / 3600 )));
+          },1000);
+        }
+        
       });
 
       function returnBike(){
-          
+          var trip_id = "{{trip_id}}"
           // call the endpoint to return the bike
           var currentLocation = $("#postcode-return").val()
           currentLocation = currentLocation.replace(' ','')
@@ -90,17 +99,50 @@
               url: "/return_bike/",
               data: {
                 bike_id: bike,
-                location: currentLocation
+                location: currentLocation,
+                trip_id: trip_id
               },
               beforeSend: function (request) {
                 request.setRequestHeader("X-CSRFToken", xcsrft);
               },
               success: function(response){
-                console.log(response)
-                $('#payment').modal('show');
+                var data = response.data;
+                var costDisplay = Math.round(data.cost * 100) / 100
+                $('#payment').modal('show'); 
+                $("#payment-info-modal").text("Your total cost is: "+costDisplay)
+                window.currentCost = data.cost;
               }
             });
           }
+      }
+
+      function makePayment() {
+        // should check the user profile before make the payment
+        var currentCost = -1 * window.currentCost
+        var xcsrft = "bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
+        $.ajax({
+          type: "POST",
+          dataType: "json",
+          url: "/recalculate-wallet/",
+          data: {
+            amount: currentCost
+          },
+          beforeSend: function (request) {
+            request.setRequestHeader("X-CSRFToken", xcsrft);
+          },
+          success: function(response){
+            var data = response.data;
+            var credit = data.credit
+            if (credit < 0) {
+              alert("You have a debt of "+(-1*credit)+". You will need to add enough money to your wallet before riding again")
+            }
+            else {
+              alert("You have payed your ride. Your current credit is "+credit)
+            }
+            location.href = "/home"
+
+          }
+        });
       }
 
      
@@ -137,7 +179,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <a href="#home" class="nav-link">Home</a>
+              <a href="/home" class="nav-link">Home</a>
             </li>
             <li class="nav-item">
               <a href="/logout" class="nav-link">Log out</a>
@@ -155,6 +197,8 @@
             <span class="display-4" id="id_M">00</span
             ><span class="display-4">:</span>
             <span class="display-4" id="id_S">00</span>
+            <br />
+            <span class="display-3" id="ended_text"></span>
             <footer class="blockquote-footer">
               <small>
                 <cite>Enjoy your trip and explore your city</cite>
@@ -165,7 +209,7 @@
         <br />
         <br />
         <!-- TODO: IMPROVE STYLE PLEASE-->
-        <div style="display: inline-grid;"  >
+        <div style="display: inline-grid;" id="form-location-end">
           <div class="form-group">
             <label for="postcode">Where are you leaving the bike? </label>
             <input
@@ -204,10 +248,10 @@
             </button>
           </div>
           <div class="modal-body">
-            <p class="h4 text-center">Your total cost is: </p>
+            <p class="h4 text-center" id="payment-info-modal">Your total cost is: </p>
           </div>
           <div class="modal-footer">
-            <button class="btn btn-dark" data-dismiss="modal">Check out</button>
+            <button class="btn btn-dark" data-dismiss="modal" onclick="makePayment()">Check out</button>
           </div>
         </div>
       </div>

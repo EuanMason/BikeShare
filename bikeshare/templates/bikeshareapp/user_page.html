@@ -50,6 +50,12 @@
         document.getElementsByTagName("head")[0].appendChild(script);
         showInitMap();
         $('#ride-bike').hide();
+
+        // check if the user has enough credit to have a ride
+        var user_credit = "{{wallet}}"
+        if(user_credit <= 0) {
+          $('#ride-form-main').hide()
+        }
     }
 
     function showInitMap (results) {
@@ -97,7 +103,6 @@
      }
 
      function showMap(results) {
-       // TODO: Calculate 
        var postcode = $( "#postcode" ).val()
        postcode = postcode.replace(' ','')
        if (postcode.length > 0) {
@@ -224,6 +229,35 @@
        }
      }
 
+     function addMoneyWallet() {
+       // TODO: Check if fields look correct :P
+       var amount = $("#am").val()
+       var xcsrft = "bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
+       
+        $.ajax({
+          type: "POST",
+          dataType: "json",
+          url: "/recalculate-wallet/",
+          data: {
+            amount: amount
+          },
+          beforeSend: function (request) {
+            request.setRequestHeader("X-CSRFToken", xcsrft);
+          },
+          success: function(response){
+            var data = response.data;
+            var credit = data.credit
+            if (credit < 0) {
+              alert("You have a debt of "+(-1*credit)+". You will need to add enough money to your wallet before riding again")
+            }
+            else {
+              alert("Your current credit is "+credit)
+            }
+            location.href = "/home"
+          }
+        });
+     }
+
     </script>
 
     <title>Bike Sharing</title>
@@ -261,7 +295,10 @@
 
     <section id="main-page">
       <div class="container">
-        <div class="start-form bg-light p-3">
+        <div class="bg-light" style="text-align: center; padding: 0.5rem 0 0.1rem 0;">
+          <h3 class="m-heading text-primary">Your wallet has: £{{wallet}}</h3>
+        </div>
+        <div class="start-form bg-light p-3" id="ride-form-main">
           <h2 class="m-heading">Let's start!</h2>
           <h3 class="m-heading text-danger" id="alertInitPostcode">Enter the postcode of your current location below</h3>
           <div>
@@ -330,6 +367,70 @@
             
           </div>
         </div>
+
+        <div class="start-form bg-light p-3">
+          <h2 class="m-heading">Add money to your wallet!</h2>
+          <div>
+            <div class="form-group">
+              <label for="ccn">Credit Card Number: </label>
+              <input
+                class="form-control"
+                placeholder="Credit Card Number"
+                type="number"
+                id="ccn"
+                class="box"
+                required
+              />
+
+              <label for="ed">Expirency Date: </label>
+              <input
+                class="form-control"
+                placeholder="Expirency Date"
+                type="month"
+                id="ed"
+                class="box"
+                min="2021-02"
+                min="100000000"
+                max="999999999"
+                required
+              />
+
+              <label for="sn">Security Number: </label>
+              <input
+                class="form-control"
+                placeholder="Security Number"
+                type="number"
+                id="sn"
+                class="box"
+                min="100"
+                max="999"
+                required
+              />
+
+              <label for="am">Amount of Money: </label>
+              <input
+                class="form-control"
+                placeholder="Amount of Money"
+                type="number"
+                id="am"
+                class="box"
+                min="1"
+                max="9999999999"
+                required
+              />
+
+            </div>
+            <div class="form-group">
+              <button
+                class="submitbox btn btn-primary"
+                onclick="addMoneyWallet()"
+              >
+                Give us Money!
+              </button>
+            </div>
+          </div>
+        </div>
+
       </div>
     </section>
     <style type="text/css">

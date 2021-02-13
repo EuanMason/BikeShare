@@ -49,7 +49,6 @@ function postCodeSubmit() {
 }
 
 function bikeIDStartSubmit(value) {
-  console.log("--------------------------------------++++++++++++++++++++++++++++++++++++")
   var bikeid = value;//document.querySelector("#bikeid").value;
   xcsrft = "bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
   $.ajax({
@@ -86,7 +85,8 @@ function bikeIDStartSubmit(value) {
 //// Start: Report Bike ////
 
 function bikeIDErrorSubmit() {
-    var bikeid = document.querySelector("#bikeid").value;
+    var xcsrft = "bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
+    var bikeid = window.currentBike  //document.querySelector("#bikeid").value;
     $.ajax({
         type: "POST",
         dataType: "json",
@@ -94,12 +94,13 @@ function bikeIDErrorSubmit() {
         data: {
             bikeid: bikeid,
         },
-        beforeSend: function() {
-            if (bikeid == "" || bikeid == "") {
-                alert("The bikeID cannot be empty");
-                return false;
-            }
-            return true;
+        beforeSend: function(request) {
+          request.setRequestHeader("X-CSRFToken", xcsrft);
+          if (bikeid == "" || bikeid == "") {
+              alert("The bikeID cannot be empty");
+              return false;
+          }
+          return true;
         },
         success: function() {
             //alert(response.state)
@@ -115,6 +116,7 @@ function CallModal(value) {
         return false;
     } else {
         $('#ReportModal').modal('show');
+        window.currentBike = bikeid
     };
 };
 

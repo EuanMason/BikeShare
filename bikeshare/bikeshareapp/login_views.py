@@ -6,6 +6,10 @@ from util.decorators import auth_required
 from util.sql_query import *
 from django.http import HttpResponse, HttpResponseRedirect
 
+from bikeshareapp.models import User
+from bikeshareapp.rest_serializers import UserSerializer, UserLimitedSerializer
+
+
 
 def user_login(request):
     if request.POST:
@@ -30,11 +34,15 @@ def user_login(request):
 
 # function for
 def check_if_login(request):
+    
     try:
         userid = request.COOKIES['userid']
         nickname = request.COOKIES['nickname']
         role = request.COOKIES['role']
-        return render(request, 'bikeshareapp/user_page.html', {'userid': userid, 'role': role, 'nickname': nickname})
+        currentTrip = User.objects.get(userid=userid)
+        serialized_trip = UserSerializer(currentTrip)
+        wallet_credit = dict(serialized_trip.data['wallet_id'])['credit']
+        return render(request, 'bikeshareapp/user_page.html', {'userid': userid, 'role': role, 'nickname': nickname, 'wallet': wallet_credit})
     except KeyError:
         return render(request, 'user_page.html', {'userid': 'not logged in'})
 

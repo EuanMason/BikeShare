@@ -15,6 +15,8 @@ from django.http import HttpResponse, JsonResponse
 
 from django.db.models import Count
 from django.db.models import F
+from django.core.exceptions import ObjectDoesNotExist
+
 
 
 
@@ -190,15 +192,15 @@ def recalculateMoney(request):
                 return  Response(status=status.HTTP_404_NOT_FOUND)
     
             currenCredit = 0
-            if currentWallet.Credit < 0 or currentWallet.Credit == None:
-                currenCredit = 0
-            else:
-                currenCredit = currentWallet.Credit
+            #if currentWallet.Credit < 0 or currentWallet.Credit == None:
+            #    return Response(status=status.HTTP_402_PAYMENT_REQUIRED)
+            #else:
+            currenCredit = currentWallet.Credit
 
-            if currenCredit + amountToCharge < 0:
-                return Response(status=status.HTTP_409_CONFLICT)
+            #if currenCredit + amountToCharge < 0:
+            #    return Response(status=status.HTTP_409_CONFLICT)
             
-            currentWallet.Credit = currenCredit + amountToCharge
+            currentWallet.Credit = round(float(currenCredit) + float(amountToCharge),2)
             currentWallet.save()
 
             serialized = WalletSerializer(currentWallet, many=False)
@@ -222,11 +224,18 @@ def recalculateMoney(request):
 @api_view(['POST'])
 def returnBike(request):
     if request.method == 'POST':
-        bike_id = request.query_params.get('bike_id')
-        location = request.query_params.get('location')
+        bike_id = request.data['bike_id']
+        location = request.data['location']
+        trip_id = request.data['trip_id']
         user_id = request.COOKIES['userid']
-        trip = Trip.objects.filter(BikeID=bike_id, UserID=user_id, Cost=0.0)
-        serialized_trip = TripSerializer(Trip.objects.get(BikeID=bike_id, Cost=0.0))
+        try:
+            trip = Trip.objects.filter(TripID=trip_id, BikeID=bike_id, Cost=0.0)
+            serialized_trip = TripSerializer(Trip.objects.get(TripID=trip_id,BikeID=bike_id, Cost=0.0))
+        except ObjectDoesNotExist as e:
+            #print("----------------------********************")
+            #print(e) 
+            return Response(status=status.HTTP_404_NOT_FOUND)
+
         town = ""
         postcode = ""
 
@@ -267,7 +276,7 @@ def returnBike(request):
 
         response = {
             "status" : "OK",
-            "request": serialized_trip.data
+            "data": serialized_trip.data
         }
         return Response(response, status=status.HTTP_200_OK)
     else:
