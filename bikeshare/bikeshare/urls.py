@@ -57,7 +57,7 @@ urlpatterns = [
     path('return_bike/', returnBike),
     path('get_Location/', getLocation),
     path('locations-of-availabe-bikes/', getAvailableLocationsOfBikes),
-    url(r'^home/report_defective', report_defective),
+    path('report_defective/', report_defective),
     url(r'^operator/', include('bikeshareapp.operator_urls')),
     url('get-operators/', getAllOperators),
     url('assign-defective-to-operator/', assignBikeToOperator),

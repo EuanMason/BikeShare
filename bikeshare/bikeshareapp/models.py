@@ -90,11 +90,16 @@ class Repairs(models.Model):
     BikeID = models.ForeignKey(Bike, on_delete=models.CASCADE)
     ReportedUser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reported_user')
     Issue = models.CharField(max_length=400)
-    AssignedOperator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assigned_operator')
+    AssignedOperator = models.ForeignKey(User, blank=True, null=True,on_delete=models.CASCADE, related_name='assigned_operator')
     InProgress = models.IntegerField(null=False, default=0)
 
     def __str__(self):
-        return str(self.RepairsID) + ' - ' + str(self.AssignedOperator.userid)
+        operator = ""
+        if (self.AssignedOperator is None):
+            operator = "TBD"
+        else:
+            operator = str(self.AssignedOperator.userid)
+        return str(self.RepairsID) + ' - ' + operator
 
     class Meta:
         db_table = 'repairs'

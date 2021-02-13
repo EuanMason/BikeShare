@@ -30,7 +30,6 @@ function login() {
 
 function postCodeSubmit() {
   var postcode = document.querySelector("#postcode").value;
-  alert(postcode);
   $.ajax({
     type: "POST",
     dataType: "json",
@@ -84,15 +83,40 @@ function bikeIDStartSubmit(value) {
 
 //// Start: Report Bike ////
 
+function CallModal(value) {
+  var bikeid = value;//document.querySelector("#bikeid").value;
+  if (bikeid == "" || bikeid == "") {
+      alert("The bikeID cannot be empty");
+      return false;
+  } else {
+      $('#ReportModal').modal('show');
+      $("#bike-report-text").text("Would you like to report a problem with Bike No."+bikeid+"?")
+      window.currentBike = bikeid
+
+  };
+};
+
+function HideModal() {
+  var $modal = $('#ReportModal');
+  $modal.modal("hide");
+  $modal.on("hidden.bs.modal", function() {
+      alert("Success! - This report has been sent to us.");
+  });
+  /*$modal.on('click', '#ConfirmReport', function(e) {
+  });*/
+};
+
 function bikeIDErrorSubmit() {
     var xcsrft = "bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
     var bikeid = window.currentBike  //document.querySelector("#bikeid").value;
+    var comment = $("#report-problem").val()
     $.ajax({
         type: "POST",
         dataType: "json",
-        url: "/home/report_defective",
+        url: "/report_defective/",
         data: {
             bikeid: bikeid,
+            comment: comment
         },
         beforeSend: function(request) {
           request.setRequestHeader("X-CSRFToken", xcsrft);
@@ -102,33 +126,13 @@ function bikeIDErrorSubmit() {
           }
           return true;
         },
-        success: function() {
-            //alert(response.state)
+        success: function(response) {
+            // alert(response.state)
             HideModal();
+            showMap();
         },
     });
 }
-
-function CallModal(value) {
-    var bikeid = value;//document.querySelector("#bikeid").value;
-    if (bikeid == "" || bikeid == "") {
-        alert("The bikeID cannot be empty");
-        return false;
-    } else {
-        $('#ReportModal').modal('show');
-        window.currentBike = bikeid
-    };
-};
-
-function HideModal() {
-    var $modal = $('#ReportModal');
-    $modal.on('click', '#ConfirmReport', function(e) {
-        $modal.modal("hide");
-        $modal.on("hidden.bs.modal", function() {
-            alert("Success! - This report has been sent to us.");
-        });
-    });
-};
 
 //// End: Report Bike ////
 
