@@ -59,6 +59,7 @@
     }
 
     function showInitMap (results) {
+      $("#main-no-bike-available").hide()
       $.ajax({
         type: "GET",
         dataType: "json",
@@ -216,6 +217,14 @@
               stringHtml+='</div>';
             }
 
+            // Show message if there is no bike available in the location
+            if(bikes.length == 0) {
+              $("#main-no-bike-available").show()
+            } 
+            else {
+              $("#main-no-bike-available").hide()
+            }
+
             // Html stuff p2
             var neededOnGrid = 3 - (bikes.length % 3);
             for(let x = 0; x < neededOnGrid; x++) {
@@ -337,6 +346,9 @@
               </div> -->
               <div class="form-group container" id="main-container-bikes">
                 
+              </div>
+              <div class="form-group container" id="main-no-bike-available">
+                <h3 class="m-heading text-info">No Bikes Available at this Spot at the moment... Sorry about that</h3>
               </div>
             </div>
 
