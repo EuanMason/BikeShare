@@ -4,8 +4,8 @@ from util.decorators import auth_required, role_check
 from .models import *
 from rest_framework.decorators import api_view
 
-#from bikeshareapp.rest_serializers import RepairsSerializer
 
+# from bikeshareapp.rest_serializers import RepairsSerializer
 
 
 @api_view(['POST'])
@@ -23,10 +23,10 @@ def report_defective(request):
             reportUser = User.objects.get(userid=request.COOKIES['userid'])
 
             report, created = Repairs.objects.get_or_create(
-                BikeID = bike,
-                ReportedUser = reportUser,
-                Issue = comment,
-                InProgress = 0
+                BikeID=bike,
+                ReportedUser=reportUser,
+                Issue=comment,
+                InProgress=0
             )
             report.save()
 
@@ -41,5 +41,3 @@ def report_defective(request):
         return JsonResponse({'state': 'Error, Bike ID has no value'})
     else:
         return JsonResponse({'state': 'Unknown Error.'})
-
-
