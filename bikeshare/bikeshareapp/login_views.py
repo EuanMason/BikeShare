@@ -39,10 +39,15 @@ def check_if_login(request):
         userid = request.COOKIES['userid']
         nickname = request.COOKIES['nickname']
         role = request.COOKIES['role']
-        currentTrip = User.objects.get(userid=userid)
-        serialized_trip = UserSerializer(currentTrip)
-        wallet_credit = dict(serialized_trip.data['wallet_id'])['credit']
-        return render(request, 'bikeshareapp/user_page.html', {'userid': userid, 'role': role, 'nickname': nickname, 'wallet': wallet_credit})
+        if role=='operator':
+            return render(request, 'bikeshareapp/operator_page.html', {'userid': userid, 'role': role, 'nickname': nickname})
+        elif role=='manager':
+            return render(request, 'bikeshareapp/manager_page.html', {'userid': userid, 'role': role, 'nickname': nickname})
+        else: 
+            currentTrip = User.objects.get(userid=userid)
+            serialized_trip = UserSerializer(currentTrip)
+            wallet_credit = dict(serialized_trip.data['wallet_id'])['credit']
+            return render(request, 'bikeshareapp/user_page.html', {'userid': userid, 'role': role, 'nickname': nickname, 'wallet': wallet_credit})
     except KeyError:
         return render(request, 'user_page.html', {'userid': 'not logged in'})
 
