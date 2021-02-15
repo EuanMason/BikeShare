@@ -13,7 +13,7 @@ from rest_framework.decorators import api_view
 def select_locations(request):
     address_list = get_all_bikes_locations()
     if address_list is not None:
-        return JsonResponse({'locations': address_list})
+        return JsonResponse(address_list)
     else:
         return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 

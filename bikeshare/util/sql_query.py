@@ -44,12 +44,15 @@ def get_all_locations():
 def get_all_bikes_locations():
     try:
         bike_list = Bike.objects.all()
-        address_list = []
+        address_list = {}
         for bike in bike_list:
             location_id = bike.AddressLocationID
             location = location_id.Line1
-            address_list.append(location)
-        address_list = list(set(address_list))
+            if location in address_list.keys():
+                address_list[location] += 1
+            else:
+                address_list[location] = 1
+
         return address_list
     except:
         return None
