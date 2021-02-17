@@ -16,32 +16,50 @@
       integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
       crossorigin="anonymous"
     />
-    <script
-      src="http://code.jquery.com/jquery-3.5.1.min.js"
-      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
-      crossorigin="anonymous"
-    ></script>
       <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-
-
-     <style type="text/css">
-      #map {
-        height: 57%;
-      }
-
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-    </style>
+    <link
+      rel="stylesheet"
+      media="screen and (max-width: 768px)"
+      href="css/mobile.css"
+    />
 
     <script>
-    let map;
-    let imgs = "{% static "img/" %}"
-
+        function GetTrack(){
+            var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
+            +"Current Location: "+$("#postcode").val();
+            $("#TrackCollapseBody").html(html);            
+        }
+      function GetRepair(){
+          var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
+          +"Current Location: "+$("#postcode").val()+"<br>" 
+          +"Current Repair Status: "+"need to fetch from database";
+          $("#RepairCollapseBody").html(html);
+      }      
+      function BikeRepaired(){
+          var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
+          +"Current Location: "+$("#postcode").val()+"<br>" 
+          +"Current Repair Status: "+"None";
+          $("#RepairCollapseBody").html(html);
+          alert("Bike has been repaired.");
+      }
+      function GetMove(){
+          var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
+          +"Current Location: "+$("#postcode").val()+"<br>"
+          $("#MoveCollapseBody").html(html);          
+      }
+      function MoveLocation(){
+        var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
+        +"Current Location: "+$("#NewPostcode").val()+"<br>"
+        $("#MoveCollapseBody").html(html);
+         
+        var NewPostcode = document.querySelector("#NewPostcode").value;
+        if (NewPostcode == "" || NewPostcode == "") {
+            alert("Please enter the new postcode.");
+        } else {  
+            alert("Bike has been moved.");
+        };
+      };   
     </script>
 
     <title>Bike Sharing</title>
@@ -75,11 +93,156 @@
       </div>
     </nav>
 
-    <div id="map"></div>
+    <br>
+    </br>
 
     <section id="main-page">
-        OPERATOR!
+      <div class="container">
+        <div class="start-form bg-light p-3">
+          <h2 class="m-heading">Welcome, Operator.</h2>
+          <form action="#">
+            <div class="form-group">
+              <label for="postcode">Post Code: </label>
+              <input
+                class="form-control"
+                placeholder="Enter postcode"
+                type="text"
+                id="postcode"
+                class="box"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <button
+                class="submitbox btn btn-primary"
+                onclick="getBikes()"
+              >
+                Search
+              </button>
+              <div id="selectBike" class="form-group">
+
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="bikeID">Bike ID: </label>
+              <input
+                class="form-control"
+                placeholder="Enter bike ID"
+                type="text"
+                id="bikeid"
+                class="box"
+                required
+              />
+            </div>
+                         
+            <div id="accord">
+
+            <!--- Track Button -->
+            <button
+            class="btn btn-primary"
+            data-toggle="collapse" data-target="#TrackCollapse"
+            data-parent="#accord" aria-controls="TrackCollapse"
+            onClick="GetTrack()">
+                Track
+            </button>                
+            <!--- Repair Button -->
+            <button
+            class="btn btn-primary" 
+            data-toggle="collapse" data-target="#RepairCollapse"
+            data-parent="#accord" aria-controls="RepairCollapse"
+            onClick="GetRepair()">
+                Repair
+            </button>
+            <!--- Move Button -->
+            <button
+            class="btn btn-primary" 
+            data-toggle="collapse" data-target="#MoveCollapse"
+            data-parent="#accord" aria-controls="MoveCollapse"
+            onClick="GetMove()">
+                Move
+            </button>
+            <!-- End of Buttons-->
+            
+                        
+            <!--- Track Collapse --->
+            <div class="collapse" id="TrackCollapse" data-parent="#accord">
+                <div class="card card-body"
+                id="TrackCollapseBody">
+                </div>
+                <div class="card-footer">
+                <div class="form-group">
+                <button
+                    class="submitbox btn btn-success"
+                    onClick="GetTrack()"
+                >
+                    Refresh Location
+                </button>
+                </div>
+                </div>                
+            </div>            
+            <!--- Repair Collapse ---> 
+            <div class="collapse" id="RepairCollapse" data-parent="#accord">
+                <div class="card card-body"
+                id="RepairCollapseBody">
+                </div>
+                <div class="card-footer">
+                <div class="form-group">
+                <button
+                class="submitbox btn btn-success"
+                onclick="BikeRepaired()"
+                >
+                Repair Bike
+                </button>
+                </div>
+                </div>
+            </div>            
+            <!--- Move Collapse ---> 
+            <div class="collapse" id="MoveCollapse" data-parent="#accord">
+                <div class="card card-body">
+                    <div id="MoveCollapseBody"></div>
+                </div>
+                    <!-- Move Collapse [Search for bike] -->
+                    <div class="card-footer">
+                    <div class="form-group">
+                    <label for="postcode">Enter the new postcode, you would like to move the bike to: </label>
+                    <input
+                        class="form-control"
+                        placeholder="Enter new postcode"
+                        type="text"
+                        id="NewPostcode"
+                        class="box"
+                        required
+                    />
+                    </div>
+                    <div class="form-group">
+                    <button
+                        class="submitbox btn btn-primary"
+                        onclick="getBikes()"
+                    >
+                        Search
+                    </button>              
+                    <button type="button" class="btn btn-success" id="ConfirmMove" 
+                    onclick="MoveLocation()">
+                    Move to Location
+                    </button>              
+                    </div>
+                    <div id="selectBike" class="form-group">
+
+                    </div>
+                    </div>
+                </div>
+            </div> 
+            </div>       
+            <!-- End of Collapses--> 
+            
+            
+
+            </form>
+            </div>
+            </div>
     </section>
+
     <style type="text/css">
 		#time p{
 			color: #000000;
@@ -91,7 +254,11 @@
 		}
 	</style>
 
-    
+    <script
+      src="http://code.jquery.com/jquery-3.5.1.min.js"
+      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+      crossorigin="anonymous"
+    ></script>
     <script
       src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
       integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
@@ -103,12 +270,7 @@
       crossorigin="anonymous"
     ></script>
 
-    <script
-      defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhwTKf3kSrByV-QeOT5hWAXN7CtM2VHFE&callback=initMap"
-    ></script>
-
-    <script src="{% static "javascript/app.js" %}"></script>
+    <script src="app.js"></script>
 
   </body>
 </html>
