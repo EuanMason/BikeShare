@@ -32,9 +32,6 @@ class User(models.Model):
 
 
 # Create your models here.
-
-
-
 class Address(models.Model):
     LocationID = models.AutoField(primary_key=True)
     Line1 = models.CharField(max_length=200, blank=False)
@@ -53,6 +50,11 @@ class Address(models.Model):
 class Bike(models.Model):
     BikeID = models.AutoField(primary_key=True)
     Rent = models.FloatField(null=False)
+    # Extended use of isAvailable
+    # 1 = bike is available for user to ride
+    # 0 = bike is not available 
+    # 2 = bike is not available due movement
+    # 3 = bike is not available due repair
     IsAvailable = models.IntegerField(null=False)
     IsDefective = models.IntegerField(null=False)
     AddressLocationID = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='AddressLocationID')
@@ -91,6 +93,9 @@ class Repairs(models.Model):
     ReportedUser = models.ForeignKey(User, on_delete=models.CASCADE, related_name='reported_user')
     Issue = models.CharField(max_length=400)
     AssignedOperator = models.ForeignKey(User, blank=True, null=True,on_delete=models.CASCADE, related_name='assigned_operator')
+    # -1 is done
+    # 0 not started
+    # 1 in progress
     InProgress = models.IntegerField(null=False, default=0)
 
     def __str__(self):
@@ -103,3 +108,24 @@ class Repairs(models.Model):
 
     class Meta:
         db_table = 'repairs'
+
+class Movement(models.Model):
+    MovementID = models.AutoField(primary_key=True)
+    ProposedLocation = models.ForeignKey(Address, on_delete=models.CASCADE, related_name='proposed_location')
+    BikeID = models.ForeignKey(Bike, on_delete=models.CASCADE)
+    MoveOperator = models.ForeignKey(User, blank=True, null=True,on_delete=models.CASCADE, related_name='move_operator')
+    # -1 is done
+    # 0 not started
+    # 1 in progress
+    InProgress = models.IntegerField(null=False, default=0)
+
+    def __str__(self):
+        operator = ""
+        if (self.MoveOperator is None):
+            operator = "TBD"
+        else:
+            operator = str(self.MoveOperator.userid)
+        return str(self.MovementID) + ' - ' + operator
+
+    class Meta:
+        db_table = 'movement'

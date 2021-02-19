@@ -6,8 +6,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
-from bikeshareapp.models import Wallet, Address, Bike, Trip, User, Repairs
-from bikeshareapp.rest_serializers import WalletSerializer, AddressSerializer, BikeSerializer, TripSerializer, UserSerializer, UserLimitedSerializer, RepairsSerializer
+from bikeshareapp.models import Wallet, Address, Bike, Trip, User, Repairs, Movement
+from bikeshareapp.rest_serializers import WalletSerializer, AddressSerializer, BikeSerializer, TripSerializer, UserSerializer, UserLimitedSerializer, RepairsSerializer, MovementSerializer
 
 from util.decorators import auth_required, role_check
 import json
@@ -60,6 +60,17 @@ def getAllBikes(request):
     return Response(response, status=status.HTTP_200_OK)
 
 @api_view(['GET'])
+@role_check(['operator', 'manager'])
+def trackBikes(request):
+    queryset = Bike.objects.all()
+    serialized = BikeSerializer(queryset, many=True)
+    data_to_return = serialized.data
+    response = {
+        'data': data_to_return
+    }
+    return Response(response, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
 @role_check(['operator', 'manager', 'user'])
 def getAllBikesBasedOnLocation(request, location):
 
@@ -79,6 +90,7 @@ def getAllBikesBasedOnLocation(request, location):
         if role == 'user':
             # For customer we only need the available bikes and not defective
             queryset = Bike.objects.filter(IsAvailable = 1, IsDefective = 0, AddressLocationID=locationObj.LocationID)
+            
             serialized = BikeSerializer(queryset, many=True)
             data_to_return = serialized.data
             serialized_loc = AddressSerializer(locationObj, many=False)
@@ -89,8 +101,16 @@ def getAllBikesBasedOnLocation(request, location):
             queryset = Bike.objects.filter(IsAvailable = 1, AddressLocationID=locationObj.LocationID)
             serialized = BikeSerializer(queryset, many=True)
             data_to_return = serialized.data
+            for d in data_to_return:
+                repairFiltered = Repairs.objects.filter(BikeID=d['bike_id'], InProgress__in=[0,1])
+                serialized_repairs = RepairsSerializer(repairFiltered, many=True)
+                data_repairs = serialized_repairs.data
+                d['reports'] = data_repairs
             serialized_loc = AddressSerializer(locationObj, many=False)
             data_loc = serialized_loc.data
+
+            
+
         elif role == 'manager':
             queryset = Bike.objects.filter(AddressLocationID=locationObj.LocationID)
             serialized = BikeSerializer(queryset, many=True)
@@ -317,47 +337,42 @@ def startRepairABike(request):
             data = request.data
             if data:
                 user_id = request.COOKIES['userid']
-                bike_id = request_json['bike_id']
+                bike_id = data['bike_id']
 
-                bikes = Bike.objects.filter(BikeID=bikeID)
-                user = User.objects.get(userid=operatorID)
+                bikes = Bike.objects.filter(BikeID=bike_id)
+                # user = User.objects.get(userid=operatorID)
                 if len(bikes)!=1:
                     return  Response(status=status.HTTP_400_BAD_REQUEST)
 
                 bikes=bikes[0]
-                if bikes.IsDefective:
-                    bikes.IsAvailable = 0
-                    bikes.IsDefective = 0
+                #if bikes.IsDefective:
+                bikes.IsAvailable = 3
+                bikes.IsDefective = 1
                 bikes.save()
+
+                # Update reports
+                Repairs.objects.filter(BikeID=bikes.BikeID).update(InProgress=1,AssignedOperator=user_id)
+                # Create the object if not exists
+                #repair, created = Repairs.objects.get_or_create(
+                #    BikeID = bikes.BikeID,
+                #    ReportedUser = reportUser,
+                #    Issue = report['issue'],
+                #    AssignedOperator = operatorUser,
+                #    InProgress = 0
+                #)
             
                 serialized = BikeSerializer(bikes,many=False)
                 data_to_return = serialized.data
                 response = {
-                    'Data':  data_to_return
+                    'data':  data_to_return
                 }
+
+                return Response(response, status=status.HTTP_200_OK)
+
     except Exception as e:
         print("----------------------********************")
         print(e)
         return  Response(status=status.HTTP_400_BAD_REQUEST)
-
-@api_view(['GET'])
-@role_check(['operator'])
-def getAssignedBikes(request):
-
-    userid = request.COOKIES['userid']
-    # role = request.COOKIES['role']
-
-    try:
-        bikesFiltered = Bike.objects.filter(OperatorID=userid)
-        serialized = BikeSerializer(bikesFiltered, many=True)
-        data_to_return = serialized.data
-
-        response = {
-            'data': data_to_return
-        }
-        return Response(response, status=status.HTTP_200_OK)
-    except:
-        return  Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @role_check(['operator'])
@@ -368,30 +383,160 @@ def endRepairABike(request):
             data = request.data
             if data:
                 user_id = request.COOKIES['userid']
-                bike_id = request_json['bike_id']
+                bike_id = data['bike_id']
 
-                bikes = Bike.objects.filter(BikeID=bikeID)
-                user = User.objects.get(userid=operatorID)
+                bikes = Bike.objects.filter(BikeID=bike_id)
+                # user = User.objects.get(userid=operatorID)
                 if len(bikes)!=1:
                     return  Response(status=status.HTTP_400_BAD_REQUEST)
 
                 bikes=bikes[0]
-                if bikes.IsDefective:
-                    bikes.IsAvailable = 1
-                    bikes.IsDefective = 1
-                    bikes.OperatorID = None
+                #if bikes.IsDefective:
+                bikes.IsAvailable = 1
+                bikes.IsDefective = 0
+                    # bikes.OperatorID = None
                 bikes.save()
+
+                # Update reports --> -1 means is done
+                Repairs.objects.filter(BikeID=bikes.BikeID).update(InProgress=-1)
             
                 serialized = BikeSerializer(bikes,many=False)
                 data_to_return = serialized.data
                 response = {
-                    'Data':  data_to_return
+                    'data':  data_to_return
                 }
+                return Response(response, status=status.HTTP_200_OK)
     except Exception as e:
         print("----------------------********************")
         print(e)
         return  Response(status=status.HTTP_400_BAD_REQUEST)
 
+@api_view(['POST'])
+@role_check(['operator'])
+def moveBikeStart(request):
+    try:
+        if request.COOKIES :
+            data = request.data
+            if data:
+                user_id = request.COOKIES['userid']
+                bike_id = data['bike_id']
+                intented = data['place']
+                locations = Address.objects.filter(Line1=intented)
+                if len(locations) == 0:
+                    locations = Address.objects.filter(Postcode=intented)
+                if len(locations) == 0:
+                    return Response(status=status.HTTP_404_NOT_FOUND)
+
+                intented_location = locations[0]
+                bikes = Bike.objects.filter(BikeID=bike_id)
+                user = User.objects.get(userid=user_id)
+                if len(bikes)!=1:
+                    return  Response(status=status.HTTP_400_BAD_REQUEST)
+
+                bikes=bikes[0]
+                bikes.IsAvailable = 2
+                bikes.AddressLocationID = intented_location
+                #Repairs.objects.filter(IsAvailable=bikes.BikeID).update(InProgress=-1)
+                bikes.save()
+
+                # Save new move
+                move = Movement(
+                    ProposedLocation=intented_location, 
+                    BikeID=bikes,
+                    MoveOperator=user,
+                    InProgress = 1
+                )
+                move.save()
+            
+                serialized = BikeSerializer(bikes,many=False)
+                data_to_return = serialized.data
+                response = {
+                    'data':  data_to_return
+                }
+                return Response(response, status=status.HTTP_200_OK)
+    except Exception as e:
+        print("----------------------********************")
+        print(e)
+        return  Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@role_check(['operator'])
+def moveBikeEnd(request):
+    print(request)
+    try:
+        if request.COOKIES :
+            data = request.data
+            if data:
+                user_id = request.COOKIES['userid']
+                bike_id = data['bike_id']
+                intented = data['place']
+                locations = Address.objects.filter(Line1=intented)
+                if len(locations) == 0:
+                    locations = Address.objects.filter(Postcode=intented)
+                if len(locations) == 0:
+                    return Response(status=status.HTTP_404_NOT_FOUND)
+
+                intented_location = locations[0]
+                bikes = Bike.objects.filter(BikeID=bike_id)
+                # user = User.objects.get(userid=operatorID)
+                if len(bikes)!=1:
+                    return  Response(status=status.HTTP_400_BAD_REQUEST)
+
+                bikes=bikes[0]
+                #if bikes.IsDefective:
+                bikes.IsAvailable = 1
+                bikes.AddressLocationID = intented_location
+                bikes.save()
+
+                # Update move
+                Movement.objects.filter(MoveOperator=user_id, BikeID=bike_id, InProgress=1).update(InProgress=-1)
+            
+                serialized = BikeSerializer(bikes,many=False)
+                data_to_return = serialized.data
+                response = {
+                    'data':  data_to_return
+                }
+                return Response(response, status=status.HTTP_200_OK)
+    except Exception as e:
+        print("----------------------********************")
+        print(e)
+        return  Response(status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET'])
+@role_check(['operator'])
+def getPendingAcctions(request):
+    try:
+        user_id = request.COOKIES['userid']
+        role = request.COOKIES['role']
+        
+        # Get the Pending repairments
+        repairFiltered = Repairs.objects.filter(AssignedOperator=user_id, InProgress=1)
+        serialized_repairs = RepairsSerializer(repairFiltered, many=True)
+        data_repairs = serialized_repairs.data
+
+        # Get the pending movements
+        movesFiltered = Movement.objects.filter(MoveOperator=user_id,InProgress=1)
+        serialized_movs = MovementSerializer(movesFiltered, many=True)
+        data_movs = serialized_movs.data
+
+        # Filter to return only the bikes from the repairs
+        bikes_dic = {}
+        for b in data_repairs:
+            bikes_dic[b['bike_id']['bike_id']] = b['bike_id']
+
+        d_rep_bikes = bikes_dic.values()
+
+        response = {
+            'repairs':  d_rep_bikes,
+            'movs': data_movs
+        }
+
+        return Response(response, status=status.HTTP_200_OK)
+
+    except Exception as e:
+        print("----------------------********************")
+        print(e)
+        return  Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
 #/* -------------------------------------------------------------------------- */
 #/*                             Manager Actions                                */
@@ -422,7 +567,7 @@ def assignBikeToOperator(request):
                 ReportedUser = reportUser,
                 Issue = report['issue'],
                 AssignedOperator = operatorUser,
-                InProgress = 1
+                InProgress = 0
             )
 
             bikeFiltered.IsDefective = 1

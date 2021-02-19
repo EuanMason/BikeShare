@@ -137,3 +137,19 @@ class RepairsSerializer(serializers.HyperlinkedModelSerializer):
                   'in_progress'
                   ]
 
+class MovementSerializer(serializers.HyperlinkedModelSerializer):
+
+    move_id = serializers.IntegerField(source='MovementID')
+    location = AddressSerializer(source='ProposedLocation')
+    bike_id = BikeSerializer(source='BikeID')
+    operator = UserLimitedSerializer(source='MoveOperator')
+    in_progress = serializers.IntegerField(source="InProgress")
+
+    class Meta:
+        model = Repairs
+        fields = ['move_id',
+                  'location',
+                  'bike_id',
+                  'operator',
+                  'in_progress'
+                  ]

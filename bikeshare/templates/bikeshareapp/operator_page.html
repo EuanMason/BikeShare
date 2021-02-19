@@ -18,48 +18,857 @@
     />
       <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+    <script
+      src="{% static "javascript/jquery-3.5.1.min.js"%}"
+      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+      crossorigin="anonymous"
+    ></script>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+
+    <script src="https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js"></script>
+
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+
+    <style type="text/css">
+      #map {
+        height: 57%;
+      }
+
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+    </style>
+
+    <!-- CANNOT FIND THIS SCRIPT
     <link
       rel="stylesheet"
       media="screen and (max-width: 768px)"
       href="css/mobile.css"
-    />
+    />-->
 
     <script>
-        function GetTrack(){
-            var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
-            +"Current Location: "+$("#postcode").val();
-            $("#TrackCollapseBody").html(html);            
+      let directionsDisplay;
+      let directionsService;
+      let map;
+      let imgs = "{% static "img/" %}"
+      let markersList = []
+      let markerBallonList = []
+      let markerBikeList = []
+      let markerBikeListMoving = []
+      let markerCluster;
+      function initMap() {
+        directionsDisplay = new google.maps.DirectionsRenderer({ draggable: true });
+        directionsService = new google.maps.DirectionsService();
+          map = new google.maps.Map(document.getElementById("map"), {
+              center: { lat: 55.860789, lng: -4.250311 },
+              zoom: 12,
+              mapTypeId: "terrain",
+          });
+          // Create a <script> tag and set the USGS URL as the source.
+          const script = document.createElement("script");
+          script.src =
+          "https://developers.google.com/maps/documentation/javascript/examples/json/earthquake_GeoJSONP.js";
+          document.getElementsByTagName("head")[0].appendChild(script);
+          showInitMap();
+          getPendingOps();
+      }
+
+      function showInitMap (results) {
+        // Hide the area to select bikes
+        $('#ride-bike').hide();
+        $.ajax({
+          type: "GET",
+          dataType: "json",
+          url: "/locations-of-availabe-bikes/",
+          data: {},
+          success: function (response) {
+              //console.log(response)
+              //alert(response.location);
+              var arrayData = response.location;
+
+              for (let j = 0; j < markerBallonList.length; j++) {
+                markerBallonList[j].setMap(null);
+              }
+              markerBallonList = []
+
+              for (let i = 0; i < arrayData.length; i++) {
+                  var currentData = arrayData[i];
+                  var longitudeData = arrayData[i].longitude;
+                  var latitudeData = arrayData[i].latitude;
+
+                  const latLng = new google.maps.LatLng(latitudeData, longitudeData);
+                  const marker = new google.maps.Marker({
+                      position: latLng,
+                      map: map,
+                      title: "location_id_: "+(currentData.location_id),
+                  })
+
+                  const contentPopup = 
+                  '<div id="content">' +
+                  '<div id="siteNotice">' +
+                  "</div>" +
+                  '<h3 id="firstHeading" class="firstHeading">'+currentData.line_1+'</h3>' +
+                  '<div id="bodyContent">' +
+                  "<p><b>Postcode:</b> "+currentData.postcode+"</p>" +
+                  "<p><b>City:</b> "+currentData.city+"</p>" +
+                  "</div>" +
+                  "</div>";
+
+                  const infoPopup = new google.maps.InfoWindow({
+                    content: contentPopup,
+                  });
+
+                  marker.addListener("click", () => {
+                    infoPopup.open(map, marker);
+                  });
+
+                  markerBallonList.push(marker)
+              }
+          },
+        });
+      }
+
+      function getPendingOps() {
+        $("#pending-movs").hide()
+        $("#pending-repairs").hide()
+        $.ajax({
+          type: "GET",
+          dataType: "json",
+          url: "/get-pendings-op/",
+          data: {},
+          success: function (response) {
+              //console.log(response)
+              // get the arrays
+              var movs = response.movs
+              var reps = response.repairs
+              if (movs.length > 0){
+                $("#pending-movs").show()
+              }
+              if (reps.length > 0) {
+                $("#pending-repairs").show()
+              }
+
+              // ************** START MOVMENTS PART **************
+
+              let stringHtml = "";
+              for(var x = 0; x < movs.length; x++){
+                let cMov = movs[x];
+                let possibleLoc = cMov.location
+                let currentBike = cMov.bike_id
+
+                // Validate a grid 3x3
+                if (x%3 == 0){
+                  if (x > 0) {
+                    stringHtml+='</div>';
+                    stringHtml+='<div class="row">';
+                  }
+                  else if(x == 0) {
+                    stringHtml+='<div class="row">';
+                  }
+                }
+
+                stringHtml+='<div class="col">';
+                stringHtml+='	<div class="row">';
+                stringHtml+='	  <div class="col grid-img-style">';
+                stringHtml+='		<img class="grid-style " src="'+imgs+'/bike.png" alt="bike">';
+                stringHtml+='		<h4 >Bike '+"No. "+currentBike.bike_id+'</h4>';
+                stringHtml+='	  </div>';
+                stringHtml+='	</div>';
+                stringHtml+='	<div class="row">';
+                  stringHtml+='	  <div class="col" id="accord-pendig-'+currentBike.bike_id+'">';
+                  stringHtml+='	  <div class="row">';
+
+                    stringHtml+='<div class="col">';
+                      stringHtml+='    <button ';
+                      stringHtml+='        class="btn btn-primary grid-style"  ';
+                      stringHtml+='        data-toggle="collapse" data-target="#MoveCollapsePending'+currentBike.bike_id+'" ';
+                      stringHtml+='        data-parent="#accord-pendig-'+currentBike.bike_id+'" aria-controls="MoveCollapsePending'+currentBike.bike_id+'" ';
+                      stringHtml+='        onClick="GetMove('+currentBike.bike_id+')"> ';
+                      stringHtml+='            Move ';
+                      stringHtml+='    </button> ';
+                    stringHtml+='	  </div>';
+                  stringHtml+='	  </div>';
+                  stringHtml+='	  <div class="row">';
+                    stringHtml+='<div class="col">';
+
+                      stringHtml+=' ';
+                      stringHtml+='    <div class="collapse" id="MoveCollapsePending'+currentBike.bike_id+'" data-parent="#accord-pendig-'+currentBike.bike_id+'"> ';
+                      stringHtml+='        <div class="card card-body"> ';
+                      stringHtml+='            <div id="MoveCollapsePending'+currentBike.bike_id+'Body"> ';
+                      stringHtml+='                  The proposed new location is loaded below, if you want to drop the bike in another location just change the postcode below  ';
+                      stringHtml+='            </div> ';
+                      stringHtml+='        </div> ';
+                      stringHtml+='        <div class="card-footer" > ';
+                      stringHtml+='            <div class="form-group"> ';
+                      stringHtml+='                <label for="postcode">Enter the new postcode, you would like to move the bike to: </label> ';
+                      stringHtml+='                <input class="form-control" ';
+                      stringHtml+='                    placeholder="Enter new postcode" ';
+                      stringHtml+='                    type="text" ';
+                      stringHtml+='                    value="'+possibleLoc.postcode+'" ';
+                      stringHtml+='                    id="NewPostcodeMove'+currentBike.bike_id+'" ';
+                      stringHtml+='                    class="box" ';
+                      stringHtml+='                /> ';
+                      stringHtml+='            </div> ';
+                      stringHtml+='            <div class="form-group"> ';
+                      stringHtml+='                <button  ';
+                      stringHtml+='                    type="button" class="btn btn-success" id="ConfirmMove"  ';
+                      stringHtml+='                    onclick="MoveLocationFinish('+currentBike.bike_id+')"> ';
+                      stringHtml+='                    Finish Moving ';
+                      stringHtml+='                </button>   ';
+                      stringHtml+='            </div> ';
+                      stringHtml+='        </div> ';
+                      stringHtml+='    </div> ';
+                    stringHtml+='	  </div>';
+                  stringHtml+='	  </div>';
+                  stringHtml+='	  </div>';
+                stringHtml+='	</div>';
+                stringHtml+='</div>';
+              }
+
+              // Close the grid
+              var neededOnGrid = 3 - (movs.length % 3);
+              if((movs.length % 3) == 0) {
+                neededOnGrid = 0
+              }
+              for(let x = 0; x < neededOnGrid; x++) {
+                stringHtml+='<div class="col"></div>';
+              }
+              stringHtml+='</div>'
+
+              $("#main-pending-movs").html(stringHtml)
+
+              // ************** START REPAIRS PART **************
+
+              stringHtml = "";
+              for(var x = 0; x < reps.length; x++){
+                let cRep = reps[x];
+                let currentBike = cRep
+
+                // Validate a grid 3x3
+                if (x%3 == 0){
+                  if (x > 0) {
+                    stringHtml+='</div>';
+                    stringHtml+='<div class="row">';
+                  }
+                  else if(x == 0) {
+                    stringHtml+='<div class="row">';
+                  }
+                }
+
+                stringHtml+='<div class="col">';
+                stringHtml+='	<div class="row">';
+                stringHtml+='	  <div class="col grid-img-style">';
+                stringHtml+='		<img class="grid-style " src="'+imgs+'/bike.png" alt="bike">';
+                stringHtml+='		<h4 >Bike '+"No. "+currentBike.bike_id+'</h4>';
+                stringHtml+='	  </div>';
+                stringHtml+='	</div>';
+                stringHtml+='	<div class="row">';
+                  stringHtml+='	  <div class="col" id="accord-pendig-'+currentBike.bike_id+'">';
+                  stringHtml+='	  <div class="row">';
+                    stringHtml+='<div class="col">';
+                      stringHtml+='    <button ';
+                      stringHtml+='        class="btn btn-primary grid-style"  ';
+                      stringHtml+='        data-toggle="collapse" data-target="#RepairCollapsePending'+currentBike.bike_id+'" ';
+                      stringHtml+='        data-parent="#accord-pendig-'+currentBike.bike_id+'" aria-controls="RepairCollapsePending'+currentBike.bike_id+'" ';
+                      stringHtml+='        onClick="GetRepair('+currentBike.bike_id+')"> ';
+                      stringHtml+='            Repair ';
+                      stringHtml+='    </button> ';
+                    stringHtml+='	  </div>';
+
+                  stringHtml+='	  </div>';
+                  stringHtml+='	  <div class="row">';
+                    stringHtml+='<div class="col">';
+                      stringHtml+='    <div class="collapse" id="RepairCollapsePending'+currentBike.bike_id+'" data-parent="#accord-pendig-'+currentBike.bike_id+'"> ';
+                      stringHtml+='        <div class="card card-body" ';
+                      stringHtml+='            id="RepairCollapsePending'+currentBike.bike_id+'Body"> ';
+                      stringHtml+='                    You are working on the repairments of this bike';
+                      stringHtml+='        </div> ';
+                      stringHtml+='        <div class="card-footer"> ';
+                      /*stringHtml+='            <div class="form-group"> ';
+                      stringHtml+='                <label for="postcode">Here are some comments from customers: </label> ';
+                      stringHtml+='            </div> ';*/
+                      stringHtml+='            <div class="form-group"> ';
+                      stringHtml+='                <button ';
+                      stringHtml+='                    class="submitbox btn btn-success" ';
+                      stringHtml+='                    onclick="BikeRepairedFinish('+currentBike.bike_id+')" ';
+                      stringHtml+='                    > ';
+                      stringHtml+='                    Finish Repair Bike ';
+                      stringHtml+='                </button> ';
+                      stringHtml+='            </div> ';
+                      stringHtml+='        </div> ';
+                      stringHtml+='    </div>   ';
+                      stringHtml+=' ';
+
+                    stringHtml+='	  </div>';
+                  stringHtml+='	  </div>';
+                  stringHtml+='	  </div>';
+                stringHtml+='	</div>';
+                stringHtml+='</div>';
+              }
+
+              // Close the grid
+              var neededOnGrid = 3 - (reps.length % 3);
+              if((reps.length % 3) == 0) {
+                neededOnGrid = 0
+              }
+              for(let x = 0; x < neededOnGrid; x++) {
+                stringHtml+='<div class="col"></div>';
+              }
+              stringHtml+='</div>'
+
+              $("#main-pending-repairs").html(stringHtml)
+
+          },
+        });
+      }
+
+      function getBikesOperator(results) {
+        var postcode = $( "#postcode" ).val()
+        postcode = postcode.replace(' ','')
+        if (postcode.length > 0) {
+          $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "/all-bikes-location/"+postcode,
+            data: {},
+            success: function (response) {
+              //console.log(response)
+              // Show the area to select bikes
+              $('#ride-bike').show();
+              // Clean markers 
+              for (let j = 0; j < markersList.length; j++) {
+                markersList[j].setMap(null);
+              }
+              markersList = []
+
+              var loc = response.data.loc
+              var bikes = response.data.bikes
+              // Create latlong object to center the map
+              var myLatLong = new google.maps.LatLng(loc.latitude, loc.longitude);
+              window.setTimeout(() => {
+                map.panTo(myLatLong);
+                map.setZoom(22);
+                map.setCenter(myLatLong);
+              }, 30);
+              
+              const image = {
+                url: imgs + '/bike.png',
+                origin: new google.maps.Point(0, 0),
+                scaledSize: new google.maps.Size(60, 60),
+              };
+
+              // To show bike icon on maps
+              var pi = Math.PI
+              var degrees = 180;
+              var radious = 0.00001;
+              var randomess_l1 = 0
+              var randomess_l2 = 360
+              
+              var stringHtml = '';
+              for (let i = 0; i < bikes.length; i++) {
+                var currentBike = bikes[i];
+
+                // Map stuff
+                var longitudeData = currentBike.location.longitude;
+                var latitudeData = currentBike.location.latitude;
+                // Random position
+                // From: https://gis.stackexchange.com/questions/37615/how-to-place-markers-on-the-outline-of-a-circle-in-google-maps
+                // Accesed on: Feb, 11 2021
+                var randomness_degrees = Math.floor(Math.random() * (randomess_l2 - randomess_l1) + randomess_l1);
+                var longitudeBike = Math.cos(randomness_degrees * pi / 180 ) * radious + longitudeData;
+                var latitudeBike = Math.sin(randomness_degrees * pi / 180 ) * radious + latitudeData;
+
+                const latLngBike = new google.maps.LatLng(latitudeBike, longitudeBike);
+                const marker = new google.maps.Marker({
+                  position: latLngBike,
+                  map: map,
+                  title: "bike_: "+(currentBike.bike_id),
+                  icon: image,
+                  label: {
+                    text: "No. "+currentBike.bike_id,
+                    color: "#ffffff",
+                    fontSize: "20px",
+                    fontWeight: "bold"
+                  },
+                })
+                markersList.push(marker)
+
+                // Validate a grid 3x3
+                if (i%3 == 0){
+                  if (i > 0) {
+                    stringHtml+='</div>';
+                    stringHtml+='<div class="row">';
+                  }
+                  else if(i == 0) {
+                    stringHtml+='<div class="row">';
+                  }
+                }
+
+                // Text for the repairs
+                let defectiveText = ""
+                let defectiveStyle = ""
+                let defectiveHide = ""
+                let moveHide = ""
+                let moveText ="Moving bike!!"
+                if (currentBike.is_defective == 0) {
+                  defectiveText = "This bike has no report. But you can do a repair maintenance"
+                }
+                else {
+                  defectiveText = "Here are some comments from customers:"
+                  defectiveStyle = "style='color:red; font-weight:bold'"
+                  if(currentBike.reports.length > 0) {
+                    let report0 = currentBike.reports[0]
+                    //console.log($.cookie("userid"))
+                    //console.log(report0)
+                    //console.log(report0.assigned_operator)
+                    if (report0.assigned_operator == null) {
+                      defectiveText = "This bike is defective but has not been assigned. You can repair it"
+                      defectiveText += " <br>Here are some comments from customers:"
+                      for(let df = 0; df < currentBike.reports.length; df++) {
+                        let currentRep = currentBike.reports[df]
+                        defectiveText+="<br> -"+currentRep.issue
+                      }
+                    }
+                    else if(report0.assigned_operator.user_id != $.cookie("userid")) {
+                      defectiveText = "This bike is defective but has been assigned to other operator"
+                      defectiveStyle = "style='color:#c5c546; font-weight:bold'"
+                      if(report0.in_progress == 1) {
+                        defectiveText = "This bike is being reparted by another operator"
+                        moveHide = "style='display:none'"
+                        moveText = "You cannot move this bike because is being worked by an operator"
+                      }
+                      defectiveHide = "style='display:none'"
+                    }
+                    else {
+                      defectiveText = "This was has been assigned to you."
+                      defectiveText += " <br>Here are some comments from customers:"
+                      for(let df = 0; df < currentBike.reports.length; df++) {
+                        let currentRep = currentBike.reports[df]
+                        defectiveText+="<br> -"+currentRep.issue
+                      }
+                    }
+                  }
+                }
+
+
+                stringHtml+='<div class="col">';
+                stringHtml+='	<div class="row">';
+                stringHtml+='	  <div class="col grid-img-style">';
+                stringHtml+='		<img class="grid-style " src="'+imgs+'/bike.png" alt="bike">';
+                stringHtml+='		<h4 '+defectiveStyle+'>Bike '+"No. "+currentBike.bike_id+'</h4>';
+                stringHtml+='	  </div>';
+                stringHtml+='	</div>';
+                stringHtml+='	<div class="row">';
+                  stringHtml+='	  <div class="col" id="accord-'+currentBike.bike_id+'">';
+                  stringHtml+='	  <div class="row">';
+                    stringHtml+='<div class="col">';
+                      stringHtml+='    <button ';
+                      stringHtml+='        class="btn btn-primary grid-style"  ';
+                      stringHtml+='        data-toggle="collapse" data-target="#RepairCollapse'+currentBike.bike_id+'" ';
+                      stringHtml+='        data-parent="#accord-'+currentBike.bike_id+'" aria-controls="RepairCollapse'+currentBike.bike_id+'" ';
+                      stringHtml+='        onClick="GetRepair('+currentBike.bike_id+')"> ';
+                      stringHtml+='            Repair ';
+                      stringHtml+='    </button> ';
+                    stringHtml+='	  </div>';
+                    stringHtml+='<div class="col">';
+                      stringHtml+='    <button ';
+                      stringHtml+='        class="btn btn-primary grid-style"  ';
+                      stringHtml+='        data-toggle="collapse" data-target="#MoveCollapse'+currentBike.bike_id+'" ';
+                      stringHtml+='        data-parent="#accord-'+currentBike.bike_id+'" aria-controls="MoveCollapse'+currentBike.bike_id+'" ';
+                      stringHtml+='        onClick="GetMove('+currentBike.bike_id+')"> ';
+                      stringHtml+='            Move ';
+                      stringHtml+='    </button> ';
+                    stringHtml+='	  </div>';
+                  stringHtml+='	  </div>';
+                  stringHtml+='	  <div class="row">';
+                    stringHtml+='<div class="col">';
+                      stringHtml+='    <div class="collapse" id="RepairCollapse'+currentBike.bike_id+'" data-parent="#accord-'+currentBike.bike_id+'"> ';
+                      stringHtml+='        <div class="card card-body" ';
+                      stringHtml+='            id="RepairCollapse'+currentBike.bike_id+'Body"> ';
+                      stringHtml+='                    '+defectiveText+'';
+                      stringHtml+='        </div> ';
+                      stringHtml+='        <div class="card-footer" '+defectiveHide+'> ';
+                      /*stringHtml+='            <div class="form-group"> ';
+                      stringHtml+='                <label for="postcode">Here are some comments from customers: </label> ';
+                      stringHtml+='            </div> ';*/
+                      stringHtml+='            <div class="form-group"> ';
+                      stringHtml+='                <button ';
+                      stringHtml+='                    class="submitbox btn btn-success" ';
+                      stringHtml+='                    onclick="BikeRepaired('+currentBike.bike_id+')" ';
+                      stringHtml+='                    > ';
+                      stringHtml+='                    Repair Bike ';
+                      stringHtml+='                </button> ';
+                      stringHtml+='            </div> ';
+                      stringHtml+='        </div> ';
+                      stringHtml+='    </div>   ';
+                      stringHtml+=' ';
+                      stringHtml+='    <div class="collapse" id="MoveCollapse'+currentBike.bike_id+'" data-parent="#accord-'+currentBike.bike_id+'"> ';
+                      stringHtml+='        <div class="card card-body"> ';
+                      stringHtml+='            <div id="MoveCollapse'+currentBike.bike_id+'Body"> ';
+                      stringHtml+='                    '+moveText+'';
+                      stringHtml+='            </div> ';
+                      stringHtml+='        </div> ';
+                      stringHtml+='        <div class="card-footer" '+moveHide+'> ';
+                      stringHtml+='            <div class="form-group"> ';
+                      stringHtml+='                <label for="postcode">Enter the new postcode, you would like to move the bike to: </label> ';
+                      stringHtml+='                <input class="form-control" ';
+                      stringHtml+='                    placeholder="Enter new postcode" ';
+                      stringHtml+='                    type="text" ';
+                      stringHtml+='                    id="NewPostcode'+currentBike.bike_id+'" ';
+                      stringHtml+='                    class="box" ';
+                      stringHtml+='                /> ';
+                      stringHtml+='            </div> ';
+                      stringHtml+='            <div class="form-group"> ';
+                      /*stringHtml+='                <button ';
+                      stringHtml+='                    class="submitbox btn btn-primary" ';
+                      stringHtml+='                    onclick="getBikes()" ';
+                      stringHtml+='                > Search ';
+                      stringHtml+='                </button>               ';*/
+                      stringHtml+='                <button  ';
+                      stringHtml+='                    type="button" class="btn btn-success" id="ConfirmMove"  ';
+                      stringHtml+='                    onclick="MoveLocation('+currentBike.bike_id+')"> ';
+                      stringHtml+='                    Move to Location ';
+                      stringHtml+='                </button>   ';
+                      stringHtml+='            </div> ';
+                      stringHtml+='        </div> ';
+                      stringHtml+='    </div> ';
+                    stringHtml+='	  </div>';
+                  stringHtml+='	  </div>';
+                  stringHtml+='	  </div>';
+                stringHtml+='	</div>';
+                stringHtml+='</div>';
+              }
+
+              // Show message if there is no bike available in the location
+              if(bikes.length == 0) {
+                $("#main-no-bike-available").show()
+              } 
+              else {
+                $("#main-no-bike-available").hide()
+              } 
+
+              // Close the grid
+              var neededOnGrid = 3 - (bikes.length % 3);
+              if((bikes.length % 3) == 0) {
+                neededOnGrid = 0
+              }
+              for(let x = 0; x < neededOnGrid; x++) {
+                stringHtml+='<div class="col"></div>';
+              }
+              stringHtml+='</div>'
+
+              $('#main-container-bikes').html(stringHtml);
+            },
+          });
         }
+      }
+
+      // http://jsfiddle.net/mxauvtbr/2/
+      function calcRoute() {
+          var request = {
+              origin: "Patrick's St, Cork, Ireland",//$("#routeFrom").val(),
+              destination: "The Square, Blarney, Cork, Ireland",//$("#routeTo").val(),
+              travelMode: "DRIVING"
+          };
+          directionsService.route(request, function(response, status) {
+              if (status == google.maps.DirectionsStatus.OK) {
+                  directionsDisplay.setDirections(response);
+                  //document.getElementById('Gresponse').innerHTML = JSON.stringify(response);
+                  createPolyline(response);
+              }
+          });
+      };
+
+      function createPolyline(directionResult) {
+        line = new google.maps.Polyline({
+            path: directionResult.routes[0].overview_path,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.5,
+            strokeWeight: 4,
+            icons: [{
+                icon: {
+                  path: google.maps.SymbolPath.CIRCLE,
+                  scale: 8,
+                  strokeColor: '#393'
+                },
+                offset: '100%'
+              }]
+        });
+        line.setMap(map);
+        animate();
+      };
+
+      function animate() {
+          var count = 0;
+          window.setInterval(function() {
+            count = (count + 1) % 200;
+
+            var icons = line.get('icons');
+            icons[0].offset = (count / 2) + '%';
+            line.set('icons', icons);
+        }, 20);
+      };
+
+      function GetTrack(){
+          var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
+          +"Current Location: "+$("#postcode").val();
+          //$("#TrackCollapseBody").html(html);      
+          
+          console.log("Flag")
+          // get all the bikes possibles
+          $.ajax({
+            type: "GET",
+            dataType: "json",
+            url: "/track-bikes/",
+            data: {},
+            success: function(response){
+              var data = response.data;
+              console.log(data)
+
+              for (let j = 0; j < markersList.length; j++) {
+                markersList[j].setMap(null);
+              }
+              markersList = []
+
+              for (let k = 0; k < markerBallonList.length; k++) {
+                markerBallonList[k].setMap(null);
+              }
+              markerBallonList = []
+              for (let l = 0; l < markerBikeList.length; l++) {
+                markerBikeList[l].setMap(null);
+              }
+              markerBikeList = []
+              if( markerCluster ) {
+                markerCluster.clearMarkers();
+              }
+
+              var center = new google.maps.LatLng(55.860789,  -4.250311);
+
+              window.setTimeout(() => {
+                map.panTo(center);
+                map.setZoom(12);
+                map.setCenter(center);
+              }, 30);
+
+              const image = {
+                url: imgs + '/bike.png',
+                origin: new google.maps.Point(0, 0),
+                scaledSize: new google.maps.Size(60, 60),
+              };
+
+              // To show bike icon on maps
+              var pi = Math.PI
+              var degrees = 180;
+              var radious = 0.001; //0.0001 - 
+              var randomess_l1 = 100
+              var randomess_l2 = 200
+
+              var listBikesOps = []
+              
+
+              calcRoute();
+
+              for (let m = 0; m < data.length; m++) {
+                let currentB = data[m]
+                let bikeLocation = currentB.location
+
+                var longitudeData = bikeLocation.longitude;
+                var latitudeData = bikeLocation.latitude;
+
+                // Random position
+                // From: https://gis.stackexchange.com/questions/37615/how-to-place-markers-on-the-outline-of-a-circle-in-google-maps
+                // Accesed on: Feb, 11 2021
+                var randomness_degrees = Math.floor(Math.random() * (randomess_l2 - randomess_l1) + randomess_l1);
+                
+                var longitudeBike = Math.cos(randomness_degrees * pi / 180 ) * radious + longitudeData;
+                var latitudeBike = Math.sin(randomness_degrees * pi / 180 ) * radious + latitudeData;
+
+
+                var myLatLong = new google.maps.LatLng(latitudeBike, longitudeBike);
+
+                const marker = new google.maps.Marker({
+                  position: myLatLong,
+                  //map: map,
+                  title: "bike_: "+(currentB.bike_id),
+                  icon: image,
+                  label: {
+                    text: "No. "+currentB.bike_id,
+                    color: "#ffffff",
+                    fontSize: "20px",
+                    fontWeight: "bold"
+                  },
+                })
+                // First get the current rented bikes
+                if (currentB.is_available == 0 && currentB.is_defective == 0) {
+                  markerBikeListMoving.push(marker)
+                }
+                // Second get the available bikes to be clustered
+                else if(currentB.is_available == 1 ) {
+                  console.log(randomness_degrees)
+                  console.log(bikeLocation.postcode)
+                  markerBikeList.push(marker)
+                }
+                // Finally get the list of bike with some extra property (repairing or moving)
+                else {
+                  listBikesOps.push(currentB)
+                }
+              }
+
+              // Marker cluster
+              markerCluster = new MarkerClusterer(map, markerBikeList, {
+                maxZoom: 15,
+                imagePath:
+                  "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m",
+              });
+
+              // generate text to tell status of bikes under operations
+              let innerTextOps = ""
+              for(var u = 0; u <listBikesOps.length; u++){
+                var cBk = listBikesOps[u]
+                console.log(cBk)
+                if(cBk.is_available == 2) { // move
+                  innerTextOps += "<p><b>Bike No. "+cBk.bike_id+":</b> It's being moved</p>"
+                }
+                else if(cBk.is_available == 3) { // repairing
+                  innerTextOps += "<p><b>Bike No. "+cBk.bike_id+":</b> It's under repairment</p>"
+                }
+                else {
+                  innerTextOps += "<p><b>Bike No. "+cBk.bike_id+":</b> No idea. Contact admin</p>"
+                }
+              }
+              if (listBikesOps.length == 0) {
+                innerTextOps = "<b> There is no bike under any activity by operators</b>"
+              }
+              $("#TrackCollapseBody").html(innerTextOps);
+            }
+          });
+      }
       function GetRepair(){
           var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
           +"Current Location: "+$("#postcode").val()+"<br>" 
           +"Current Repair Status: "+"need to fetch from database";
           $("#RepairCollapseBody").html(html);
       }      
-      function BikeRepaired(){
+      function BikeRepaired(bikeId){
           var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
           +"Current Location: "+$("#postcode").val()+"<br>" 
           +"Current Repair Status: "+"None";
           $("#RepairCollapseBody").html(html);
-          alert("Bike has been repaired.");
+          //alert("Bike has been repaired.");
+
+          var xcsrft = "8TjLAg4iPhdx8cyc9gntbBsEyQ4w8Kqi7S3cPf0EFXl3yEeZjxcrBumwT4gqre67"; // should get this from cookes
+
+          // Call API to set new status
+          $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "/bike-repaired-by-operator-start/",
+            data: {
+              bike_id: bikeId
+            },
+            beforeSend: function (request) {
+              request.setRequestHeader("X-CSRFToken", xcsrft);
+            },
+            success: function(response){
+              var data = response.data;
+              alert("The repairment has started.");
+              getBikesOperator();
+              getPendingOps();
+            }
+          });
+      }
+      function BikeRepairedFinish(bikeId) {
+        var xcsrft = "8TjLAg4iPhdx8cyc9gntbBsEyQ4w8Kqi7S3cPf0EFXl3yEeZjxcrBumwT4gqre67"; // should get this from cookes
+
+        // Call API to set new status
+        $.ajax({
+          type: "POST",
+          dataType: "json",
+          url: "/bike-repaired-by-operator-end/",
+          data: {
+            bike_id: bikeId
+          },
+          beforeSend: function (request) {
+            request.setRequestHeader("X-CSRFToken", xcsrft);
+          },
+          success: function(response){
+            var data = response.data;
+            alert("The repairment has ended. The bike will be returned to the last location where it was");
+            getPendingOps();
+          }
+        });
       }
       function GetMove(){
           var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
           +"Current Location: "+$("#postcode").val()+"<br>"
           $("#MoveCollapseBody").html(html);          
       }
-      function MoveLocation(){
-        var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
-        +"Current Location: "+$("#NewPostcode").val()+"<br>"
-        $("#MoveCollapseBody").html(html);
+      function MoveLocation(bikeId){
+        //var html="Current Bike ID: "+$("#bikeid").val()+"<br>"+"Current Location: "+$("#NewPostcode"+bikeId).val()+"<br>"
+        //$("#MoveCollapseBody").html(html);
+
+        var xcsrft = "8TjLAg4iPhdx8cyc9gntbBsEyQ4w8Kqi7S3cPf0EFXl3yEeZjxcrBumwT4gqre67"; // should get this from cookes
          
-        var NewPostcode = document.querySelector("#NewPostcode").value;
+        var NewPostcode = document.querySelector("#NewPostcode"+bikeId).value;
         if (NewPostcode == "" || NewPostcode == "") {
             alert("Please enter the new postcode.");
         } else {  
-            alert("Bike has been moved.");
+          // Call API to set new status
+          $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "/bike-move-start/",
+            data: {
+              bike_id: bikeId,
+              place: $("#NewPostcode"+bikeId).val()
+            },
+            beforeSend: function (request) {
+              request.setRequestHeader("X-CSRFToken", xcsrft);
+            },
+            success: function(response){
+              var data = response.data;
+              alert("Bike movement has started.");
+              getBikesOperator();
+              getPendingOps();
+            }
+          });
         };
       };   
+      function MoveLocationFinish(bikeId) {
+        var xcsrft = "8TjLAg4iPhdx8cyc9gntbBsEyQ4w8Kqi7S3cPf0EFXl3yEeZjxcrBumwT4gqre67"; // should get this from cookes
+        var NewPostcode = $("#NewPostcodeMove"+bikeId).val();
+        
+
+        if (NewPostcode == "" || NewPostcode == "") {
+            alert("Please enter the new postcode.");
+        } else {  
+          // Call API to set new status
+          $.ajax({
+            type: "POST",
+            dataType: "json",
+            url: "/bike-move-end/",
+            data: {
+              bike_id: bikeId,
+              place: NewPostcode
+            },
+            beforeSend: function (request) {
+              request.setRequestHeader("X-CSRFToken", xcsrft);
+            },
+            success: function(response){
+              var data = response.data;
+              alert("Bike movement has finished.");
+              getPendingOps();
+            }
+          });
+        };
+      }
     </script>
 
     <title>Bike Sharing</title>
@@ -93,16 +902,66 @@
       </div>
     </nav>
 
-    <br>
-    </br>
+    <div id="map"></div>
 
     <section id="main-page">
       <div class="container">
+
+        <!--Track bikes-->
         <div class="start-form bg-light p-3">
           <h2 class="m-heading">Welcome, Operator.</h2>
-          <form action="#">
+          <br>
+          <!--- Track Button -->
+          <div id="accord"> 
+            <button
+              class="btn btn-primary"
+              data-toggle="collapse" data-target="#TrackCollapse"
+              data-parent="#accord" aria-controls="TrackCollapse"
+              onClick="GetTrack()">
+                Track All Bikes
+            </button>  
+            
+            <!--- Track Collapse --->
+            <div class="collapse" id="TrackCollapse" data-parent="#accord">
+                <div class="card card-body"
+                  id="TrackCollapseBody">
+                </div>
+                <div class="card-footer">
+                <div class="form-group">
+                  <button
+                      class="submitbox btn btn-success"
+                      onClick="GetTrack()"
+                  >
+                      Refresh Tracking 
+                  </button> 
+                </div>
+                </div>                
+            </div> 
+          </div>
+          <!--Track bikes-->
+          <br>
+          <!--Unfinished actions-->
+
+          <div id="pending-repairs">
+            <h4 class="m-heading">Check pending repairs</h2>
+            <br>
+            <div id="main-pending-repairs">
+
+            </div>
+          </div>
+          <br>
+          <div id="pending-movs">
+            <h4 class="m-heading">Check pending movements</h2>
+            <br>
+            <div id="main-pending-movs">
+
+            </div>
+          </div>
+          <!--Unfinished actions-->
+
+          <div>
             <div class="form-group">
-              <label for="postcode">Post Code: </label>
+              <label for="postcode">See bikes at location (Post Code): </label>
               <input
                 class="form-control"
                 placeholder="Enter postcode"
@@ -115,132 +974,23 @@
             <div class="form-group">
               <button
                 class="submitbox btn btn-primary"
-                onclick="getBikes()"
+                onclick="getBikesOperator()"
               >
                 Search
               </button>
-              <div id="selectBike" class="form-group">
-
+            </div>
+            <div id="ride-bike">
+              <div class="form-group container" id="main-container-bikes">
+                
               </div>
-            </div>
+              <div class="form-group container" id="main-no-bike-available">
+                <h3 class="m-heading text-info">No Bikes Available at this Spot at the moment</h3>
+              </div>
 
-            <div class="form-group">
-              <label for="bikeID">Bike ID: </label>
-              <input
-                class="form-control"
-                placeholder="Enter bike ID"
-                type="text"
-                id="bikeid"
-                class="box"
-                required
-              />
             </div>
-                         
-            <div id="accord">
-
-            <!--- Track Button -->
-            <button
-            class="btn btn-primary"
-            data-toggle="collapse" data-target="#TrackCollapse"
-            data-parent="#accord" aria-controls="TrackCollapse"
-            onClick="GetTrack()">
-                Track
-            </button>                
-            <!--- Repair Button -->
-            <button
-            class="btn btn-primary" 
-            data-toggle="collapse" data-target="#RepairCollapse"
-            data-parent="#accord" aria-controls="RepairCollapse"
-            onClick="GetRepair()">
-                Repair
-            </button>
-            <!--- Move Button -->
-            <button
-            class="btn btn-primary" 
-            data-toggle="collapse" data-target="#MoveCollapse"
-            data-parent="#accord" aria-controls="MoveCollapse"
-            onClick="GetMove()">
-                Move
-            </button>
-            <!-- End of Buttons-->
-            
-                        
-            <!--- Track Collapse --->
-            <div class="collapse" id="TrackCollapse" data-parent="#accord">
-                <div class="card card-body"
-                id="TrackCollapseBody">
-                </div>
-                <div class="card-footer">
-                <div class="form-group">
-                <button
-                    class="submitbox btn btn-success"
-                    onClick="GetTrack()"
-                >
-                    Refresh Location
-                </button>
-                </div>
-                </div>                
-            </div>            
-            <!--- Repair Collapse ---> 
-            <div class="collapse" id="RepairCollapse" data-parent="#accord">
-                <div class="card card-body"
-                id="RepairCollapseBody">
-                </div>
-                <div class="card-footer">
-                <div class="form-group">
-                <button
-                class="submitbox btn btn-success"
-                onclick="BikeRepaired()"
-                >
-                Repair Bike
-                </button>
-                </div>
-                </div>
-            </div>            
-            <!--- Move Collapse ---> 
-            <div class="collapse" id="MoveCollapse" data-parent="#accord">
-                <div class="card card-body">
-                    <div id="MoveCollapseBody"></div>
-                </div>
-                    <!-- Move Collapse [Search for bike] -->
-                    <div class="card-footer">
-                    <div class="form-group">
-                    <label for="postcode">Enter the new postcode, you would like to move the bike to: </label>
-                    <input
-                        class="form-control"
-                        placeholder="Enter new postcode"
-                        type="text"
-                        id="NewPostcode"
-                        class="box"
-                        required
-                    />
-                    </div>
-                    <div class="form-group">
-                    <button
-                        class="submitbox btn btn-primary"
-                        onclick="getBikes()"
-                    >
-                        Search
-                    </button>              
-                    <button type="button" class="btn btn-success" id="ConfirmMove" 
-                    onclick="MoveLocation()">
-                    Move to Location
-                    </button>              
-                    </div>
-                    <div id="selectBike" class="form-group">
-
-                    </div>
-                    </div>
-                </div>
-            </div> 
-            </div>       
-            <!-- End of Collapses--> 
-            
-            
-
-            </form>
-            </div>
-            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <style type="text/css">
@@ -255,11 +1005,6 @@
 	</style>
 
     <script
-      src="http://code.jquery.com/jquery-3.5.1.min.js"
-      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
-      crossorigin="anonymous"
-    ></script>
-    <script
       src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
       integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
       crossorigin="anonymous"
@@ -270,7 +1015,12 @@
       crossorigin="anonymous"
     ></script>
 
-    <script src="app.js"></script>
+    <script
+      defer
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhwTKf3kSrByV-QeOT5hWAXN7CtM2VHFE&callback=initMap"
+    ></script>
+
+    <script src="{% static "javascript/app.js" %}"></script>
 
   </body>
 </html>

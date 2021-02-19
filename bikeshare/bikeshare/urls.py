@@ -69,6 +69,10 @@ urlpatterns = [
         rent_views.start_rent_view
     ),
     # url(r'^home/rent_bike/start_rent_bike/(?P<trip_id>\d+)/$', rent_views.start_rent_view),
-    url('bike-repaired-by-operator-start/',startRepairABike),
-    url('bike-repaired-by-operator-end/',endRepairABike),
+    path('bike-repaired-by-operator-start/',startRepairABike),
+    path('bike-repaired-by-operator-end/',endRepairABike),
+    path('bike-move-start/', moveBikeStart),
+    path('bike-move-end/', moveBikeEnd),
+    path('get-pendings-op/',getPendingAcctions),
+    path('track-bikes/',trackBikes),
 ]
