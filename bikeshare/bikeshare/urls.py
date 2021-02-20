@@ -75,4 +75,8 @@ urlpatterns = [
     path('bike-move-end/', moveBikeEnd),
     path('get-pendings-op/',getPendingAcctions),
     path('track-bikes/',trackBikes),
+    path('trips_in_daterange/', trips_in_daterange),
+    path('total_income/', total_income),
+    path('trip_count/', trip_count),
+    path('most_common_locations/', most_common_locations),
 ]
