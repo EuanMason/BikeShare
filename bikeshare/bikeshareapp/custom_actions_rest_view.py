@@ -6,6 +6,7 @@ from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 
+
 from bikeshareapp.models import Wallet, Address, Bike, Trip, User, Repairs, Movement
 from bikeshareapp.rest_serializers import WalletSerializer, AddressSerializer, BikeSerializer, TripSerializer, UserSerializer, UserLimitedSerializer, RepairsSerializer, MovementSerializer
 
@@ -16,6 +17,7 @@ from django.http import HttpResponse, JsonResponse
 from django.db.models import Count
 from django.db.models import F
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Sum
 
 
 
@@ -547,7 +549,7 @@ def getPendingAcctions(request):
 def assignBikeToOperator(request):
     # print(request)
     try:
-        if request.data :
+        if request.data:
             request_json = request.data
             bikeID = request_json['bike_id']
             operatorID = request_json['operator_id']
@@ -608,3 +610,87 @@ def getAllOperators(request):
         # print("----------------------********************")
         # print(e)
         return  Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@role_check(['manager'])
+def trips_in_daterange(request):
+    print(request.GET['start_date'])
+    try:
+        start_date = dateutil.parser.parse(request.GET["start_date"])
+        end_date = dateutil.parser.parse(request.GET["end_date"])
+
+        queryset = Trip.objects.filter(Date__range=(start_date, end_date))
+    except KeyError:
+        queryset = Trip.objects.all()
+
+    print(queryset)
+    serialized = TripSerializer(queryset, many=True)
+    data_to_return = serialized.data
+    response = {
+        'data': data_to_return
+
+    }
+    return Response(response, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@role_check(['manager'])
+def total_income(request):
+    try:
+        start_date = dateutil.parser.parse(request.GET["start_date"])
+        end_date = dateutil.parser.parse(request.GET["end_date"])
+
+        queryset = Trip.objects.filter(Date__range=(start_date, end_date)).aggregate(Sum('Cost'))
+    except KeyError:
+        queryset = Trip.objects.all()
+
+    response = {
+        'data': [queryset['Cost__sum']]
+
+    }
+    return Response(response, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@role_check(['manager'])
+def trip_count(request):
+
+    try:
+        start_date = dateutil.parser.parse(request.GET["start_date"])
+        end_date = dateutil.parser.parse(request.GET["end_date"])
+
+        queryset = Trip.objects.filter(Date__range=(start_date, end_date)).count()
+    except KeyError:
+        queryset = Trip.objects.all().count()
+    response = {
+        'data': [queryset]
+
+    }
+    return Response(response, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@role_check(['manager'])
+def most_common_locations(request):
+    try:
+        start_date = dateutil.parser.parse(request.GET["start_date"])
+        end_date = dateutil.parser.parse(request.GET["end_date"])
+
+        queryset = Trip.objects.filter(Date__range=(start_date, end_date))
+    except KeyError:
+        queryset = Trip.objects.all()
+    endcount = {}
+    startcount = {}
+
+    for trips in queryset:
+        try:
+            endcount[trips.EndAddress_id] += 1
+            startcount[trips.StartAddress_id] += 1
+        except KeyError:
+            endcount.update({trips.EndAddress_id: 1})
+            startcount.update({trips.StartAddress_id: 1})
+
+    data = {'most_common_start': max(startcount, key=startcount.get),
+            'most_common_end': max(endcount, key=endcount.get)}
+    response = {
+        'data': data
+
+    }
+    return Response(response, status=status.HTTP_200_OK)
