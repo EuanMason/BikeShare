@@ -49,7 +49,8 @@ function postCodeSubmit() {
 
 function bikeIDStartSubmit(value) {
   var bikeid = value;//document.querySelector("#bikeid").value;
-  xcsrft = "bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
+  var xcsrft = $.cookie("csrftoken") //"bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
+  console.log(xcsrft)
   $.ajax({
     type: "POST",
     dataType: "json",
@@ -107,7 +108,7 @@ function HideModal() {
 };
 
 function bikeIDErrorSubmit() {
-    var xcsrft = "bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
+    var xcsrft = $.cookie("csrftoken") //"bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
     var bikeid = window.currentBike  //document.querySelector("#bikeid").value;
     var comment = $("#report-problem").val()
     $.ajax({

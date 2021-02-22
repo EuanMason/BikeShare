@@ -18,6 +18,7 @@
     />
       <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
     <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/all.min.css' %}" />
 
     <script src="{% static "javascript/routes.js" %}"></script>
 
@@ -28,6 +29,8 @@
     ></script>
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+
 
     <script src="https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js"></script>
 
@@ -46,15 +49,22 @@
         margin: 0;
         padding: 0;
       }
+      /**
+      Based on the solution on:
+        asprin (2013). How to print HTML content on click of a button, but not the page? [duplicate]
+        https://stackoverflow.com/questions/16894683/how-to-print-html-content-on-click-of-a-button-but-not-the-page
+        Accessed on: 22/02/2021
+      */
+      @media print {
+        html {
+          zoom: 160%;
+        }
+        .hide-print{
+          display:none;
+        }
+
+      }
     </style>
-
-    <!-- CANNOT FIND THIS SCRIPT
-    <link
-      rel="stylesheet"
-      media="screen and (max-width: 768px)"
-      href="css/mobile.css"
-    />-->
-
     <script>
       let map;
       let imgs = "{% static "img/" %}"
@@ -339,6 +349,62 @@
           showInitMap();
       }
 
+      function DownloadHistoryTrips() {
+        var d1 = $("#start-date-report").val()
+        var d1Array = d1.split('-')
+        var dateStart = new Date(d1Array[0], d1Array[1]-1, d1Array[2])
+        var d2 = $("#end-date-report").val()
+        var d2Array = d2.split('-')
+        var dateEnd = new Date(d2Array[0], d2Array[1]-1, d2Array[2])
+
+        var dateStartStr = dateStart.toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'})
+        var dateStarEnd = dateEnd.toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'})
+      
+        // Get all trips
+        $.ajax({
+          type: "GET",
+          dataType: "json",
+          url: "/trips_in_daterange",
+          data: {
+            start_date: dateStartStr,
+            end_date: dateStarEnd
+          },
+          success: function(response){
+            var data = response.data;
+            var infoCsv = "Bike, Cost, Date, Start Address, End Address, User\n"
+            for(var i = 0; i < data.length; i++) {
+              var currentRow = data[i]
+              var currentDate = new Date(currentRow['date']).toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'})
+              infoCsv += currentRow.bike.bike_id+", "
+              infoCsv += currentRow.cost + ", "
+              infoCsv += currentDate+", "
+              infoCsv += currentRow.start_address.line_1+" - "+ currentRow.start_address.postcode+", "
+              infoCsv += currentRow.end_address.line_1+" - "+ currentRow.end_address.postcode+", "
+              infoCsv += currentRow.user.user_id + "\n "
+            }
+
+            // download
+            /**
+             * Based on: John, Xavier. (2014). How to export JavaScript array info to csv (on client side)?. 
+             * https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
+             * Accessed on: 22/02/2021
+            */
+            var blobReport = new Blob([infoCsv], { type: 'text/csv;charset=utf-8;' })
+            var linkReport = document.createElement("a")
+            var urlReport = URL.createObjectURL(blobReport)
+            linkReport.setAttribute("href", urlReport)
+            linkReport.setAttribute("download", "report-trips-"+dateStartStr+"-"+dateStarEnd+".csv")
+            linkReport.style.visibility = 'hidden'
+            document.body.appendChild(linkReport)
+            linkReport.click()
+            document.body.removeChild(linkReport)
+          }
+        });
+      }
+      function DownloadPDF() {
+          print()
+      }
+
       function generateReport() {
         var d1 = $("#start-date-report").val()
         var d1Array = d1.split('-')
@@ -346,9 +412,488 @@
         var d2 = $("#end-date-report").val()
         var d2Array = d2.split('-')
         var dateEnd = new Date(d2Array[0], d2Array[1]-1, d2Array[2])
-        console.log(dateStart)
-        console.log(dateEnd)
 
+        var dateStartStr = dateStart.toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'})
+        var dateStarEnd = dateEnd.toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'})
+      
+        // Total income
+        $.ajax({
+          type: "GET",
+          dataType: "json",
+          url: "/total_income",
+          data: {
+            start_date: dateStartStr,
+            end_date: dateStarEnd
+          },
+          success: function(response){
+            var data = response.data;
+            var text = "No info"
+            if (data.length > 0) {
+              text = data[0].toFixed(2)
+            }
+            $("#total-income").text(text)
+          }
+        });
+
+        // Trip count
+        $.ajax({
+          type: "GET",
+          dataType: "json",
+          url: "/trip_count",
+          data: {
+            start_date: dateStartStr,
+            end_date: dateStarEnd
+          },
+          success: function(response){
+            var data = response.data;
+            var text = "No info"
+            if (data.length > 0) {
+              text = data[0]
+            }
+            $("#total-trips").text(text)
+          }
+        });
+
+        // Most common locations:
+        $.ajax({
+          type: "GET",
+          dataType: "json",
+          url: "/most_common_locations",
+          data: {
+            start_date: dateStartStr,
+            end_date: dateStarEnd
+          },
+          success: function(response){
+            var data = response.data;
+            var text1 = data.most_common_start.line_1 + ", "+ data.most_common_start.postcode 
+            var text2 = data.most_common_end.line_1 + ", "+ data.most_common_end.postcode 
+
+            $("#common-start").text(text1)
+            $("#common-end").text(text2)
+          }
+        });
+
+        // average trip duration, average pay
+        $.ajax({
+          type: "GET",
+          dataType: "json",
+          url: "/report-data",
+          data: {
+            start_date: dateStartStr,
+            end_date: dateStarEnd
+          },
+          success: function(response){
+            var data = response.data;
+
+            var popularBike = "No. "+response.popular_bike.bike
+            var profBike = "No. "+response.profit_bike.bike
+            $("#popular-bike").text(popularBike)
+            $("#profitable-bike").text(profBike)
+
+            var totalRep = response.cnt_repair_bikes
+            var totalMov = response.cnt_moving_bikes
+            var opeReap = response.opera_most_repa.opera.split("@")[0]
+            var opeMove = response.opera_most_movs.opera.split("@")[0]
+            $("#total-repaired").text(totalRep)
+            $("#total-moved").text(totalMov)
+            $("#ope-repairs").text(opeReap)
+            $("#ope-moves").text(opeMove)
+
+            var mvngBikes = ""
+            for (var i = 0; i < response.moving_bikes.length; i++) {
+              mvngBikes+="No. "+response.moving_bikes[i].bike_id+"<br>"
+            }
+
+            var rprBikes = ""
+            for(var j = 0; j <response.repairing_bikes.length; j++) {
+              rprBikes +="No. "+ response.repairing_bikes[j].bike_id+"<br>"
+            }
+
+            $("#current-moves").html(mvngBikes)
+            $("#current-repairs").html(rprBikes)
+
+            // Adding graphs
+            var colors_array = ["#d8d4ea", "#004fa4", "#eb1629", "#05173e", '#e51837', "#0477c2", "#0082c4", "#f0c1b3", "#9bcfd0", "#bd959f", "#989887", "#f6b969", "#037272", "#acc5c8", "#dac45f", "#c2a248", "#93b8d3", "#c0cbc0", "#a5b1a8", "#8e8e96", "#66695c"]
+            
+            // Timeline
+            var maxDate = null;
+            var minDate = null;
+            if (response.trip_count_per_day) {
+              maxDate = new Date(response.trip_count_per_day[0].date_start)
+              minDate = new Date(response.trip_count_per_day[0].date_start)
+            }
+            for(var a = 0; a < response.trip_count_per_day.length; a++) {
+              var r = response.trip_count_per_day[a]
+              if (new Date(r.date_start) > maxDate) {
+                maxDate = new Date(r.date_start)
+              }
+              if (new Date(r.date_start) < minDate) {
+                minDate = new Date(r.date_start)
+              } 
+            } 
+
+            var maxDatePay = null;
+            var minDatePay = null;
+            if (response.income_per_day) {
+              maxDatePay = new Date(response.income_per_day[0].date_start)
+              minDatePay = new Date(response.income_per_day[0].date_start)
+            }
+            for(var a = 0; a < response.income_per_day.length; a++) {
+              var r = response.income_per_day[a]
+              if (new Date(r.date_start) > maxDatePay) {
+                maxDatePay = new Date(r.date_start)
+              }
+              if (new Date(r.date_start) < minDatePay) {
+                minDatePay = new Date(r.date_start)
+              } 
+            }   
+
+            // gdt the real min y max
+            var realMax = null
+            var realMin = null
+            if (maxDatePay > maxDate) {
+              realMax = maxDatePay
+            }
+            else {
+              realMax = maxDate
+            }
+            if (minDatePay < minDate) {
+              realMin = minDatePay
+            }
+            else {
+              realMin = minDate
+            }
+
+            // Create array with dates
+            var datesGraph = []
+            var currentD = realMin
+            while(currentD <= realMax) {
+              datesGraph.push(currentD.toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'}))
+              currentD.setDate(currentD.getDate()+1)
+            }
+            // fill data arrays
+            var dataTrip = []
+            var dataIncome = []
+            for(var x = 0; x < datesGraph.length; x++) {
+              var d = datesGraph[x]
+              var found = false
+              for(var y = 0; y < response.trip_count_per_day.length; y++) {
+                var dayTrip = response.trip_count_per_day[y]
+                if(new Date(d).getTime() == new Date(dayTrip.date_start).getTime()) {
+                  dataTrip.push(dayTrip.total)
+                  found = true
+                  break
+                }
+              }
+              if(found == false) {
+                dataTrip.push(0)
+              }
+              
+              var foundPay = false
+              for(var z = 0; z < response.income_per_day.length; z++) {
+                var day = response.income_per_day[z]
+                if(new Date(d).getTime() == new Date(day.date_start).getTime()) {
+                  dataIncome.push(day.total.toFixed(2))
+                  foundPay = true
+                  break
+                }
+              }
+              if(foundPay == false) {
+                dataIncome.push(0)
+              }
+            }
+
+            // creating the chart
+            var timeline = {
+              labels: datesGraph,
+              datasets: [{
+                data: dataTrip,
+                backgroundColor: 'transparent',
+                borderColor: colors_array[0],
+                borderWidth: 4,
+                pointBackgroundColor: colors_array[0],
+                label: 'Trips',
+                yAxisID: 'Trips',
+              },
+              {
+                data: dataIncome,
+                backgroundColor: 'transparent',
+                borderColor: colors_array[1],
+                borderWidth: 4,
+                pointBackgroundColor: colors_array[1],
+                label: 'Income',
+                yAxisID: 'Income',
+              }]
+            };
+            new Chart(document.getElementById("timelines"), {
+            type: 'line',
+            data: timeline,
+            options: {
+              scales: {
+                yAxes: [
+                {
+                  id: 'Trips',
+                  type: 'linear',
+                  position: 'left',
+                  ticks: {
+                    beginAtZero: false
+                  }
+                }, 
+                {
+                  id: 'Income',
+                  type: 'linear',
+                  position: 'right',
+                  ticks: {
+                    beginAtZero: false
+                  }
+                }
+                ]
+              },
+              legend: {
+                display: true
+              },
+              title: {
+                  display: true,
+                  text: 'Trips vs Income per day'
+              }
+            }
+            });       
+            
+            // pie chart
+            var labelPie = []
+            var dataPie = []
+            for (var q=0; q<response.average_income_per_bike.length; q++) {
+              var currentBikeInc = response.average_income_per_bike[q]
+              labelPie.push("No. "+currentBikeInc.bike)
+              dataPie.push(currentBikeInc.total)
+            }
+
+            var pieData = {
+              labels: labelPie,
+              datasets: [
+                {
+                  label: "Income Per Bike Avg",
+                  backgroundColor: colors_array,
+                  data: dataPie
+                }
+              ]
+            }
+
+            new Chart(document.getElementById("income-per-bike"), {
+                type: 'doughnut',
+                data: pieData,
+                options: {
+                  title: {
+                    display: true,
+                    text: 'Average Income Per Bike'
+                  }
+                }
+            });
+
+            // Bar chart
+            // trip_per_bikes
+            var tripBikeLabel = []
+            var tripBikeData = []
+            for (var t = 0; t < response.trip_per_bikes.length; t++) {
+              var currentData = response.trip_per_bikes[t]
+              tripBikeLabel.push("No. "+currentData.bike)
+              tripBikeData.push(currentData.total)
+            }
+
+            var tripBikeChartData = {
+              labels: tripBikeLabel,
+              datasets: [
+                {
+                  label: "Trips Per Bike",
+                  backgroundColor: colors_array,
+                  data: tripBikeData
+                }
+              ]
+            }
+            
+            new Chart(document.getElementById("trip-per-bike"), {
+                type: 'bar',
+                data: tripBikeChartData,
+                options: {
+                  title: {
+                    display: true,
+                    text: 'Number of Trips Per Bike'
+                  },
+                  legend: {
+                    display: false
+                  },
+                }
+            });
+
+            // reports_per_bike
+            var reportsBikeLabel = []
+            var reportsBikeData = []
+            for (var t = 0; t < response.reports_per_bike.length; t++) {
+              var currentData = response.reports_per_bike[t]
+              reportsBikeLabel.push("No. "+currentData.bike)
+              reportsBikeData.push(currentData.bike__count)
+            }
+
+            var reportBikeChartData = {
+              labels: reportsBikeLabel,
+              datasets: [
+                {
+                  label: "Reports Per Bike",
+                  backgroundColor: colors_array,
+                  data: reportsBikeData
+                }
+              ]
+            }
+            
+            new Chart(document.getElementById("reports-per-bike"), {
+                type: 'bar',
+                data: reportBikeChartData,
+                options: {
+                  title: {
+                    display: true,
+                    text: 'Number of Reports Per Bike'
+                  },
+                  legend: {
+                    display: false
+                  },
+                  scales: {
+                    yAxes: [{
+                      ticks: {
+                        beginAtZero: true,
+                        stepSize: 1
+                      }
+                    }]
+                  },
+                }
+            });
+
+            // repairs_per_operator
+            var reportsOpLabel = []
+            var reportsOpData = []
+            for (var t = 0; t < response.repairs_per_operator.length; t++) {
+              var currentData = response.repairs_per_operator[t]
+              reportsOpLabel.push(""+currentData.opera.split("@")[0])
+              reportsOpData.push(currentData.counts)
+            }
+
+            var reportOpChartData = {
+              labels: reportsOpLabel,
+              datasets: [
+                {
+                  label: "Reports Per Operator",
+                  backgroundColor: colors_array,
+                  data: reportsOpData
+                }
+              ]
+            }
+            
+            new Chart(document.getElementById("repairs-per-operator"), {
+                type: 'bar',
+                data: reportOpChartData,
+                options: {
+                  title: {
+                    display: true,
+                    text: 'Number of Repairs Per Operator'
+                  },
+                  legend: {
+                    display: false
+                  },
+                  scales: {
+                    yAxes: [{
+                      ticks: {
+                        beginAtZero: true,
+                        stepSize: 1
+                      }
+                    }]
+                  },
+                }
+            });
+
+            // movs_per_bike
+            var moveBikeLabel = []
+            var moveBikeData = []
+            for (var t = 0; t < response.movs_per_bike.length; t++) {
+              var currentData = response.movs_per_bike[t]
+              moveBikeLabel.push("No. "+currentData.bike)
+              moveBikeData.push(currentData.bike__count)
+            }
+
+            var moveBikesChartData = {
+              labels: moveBikeLabel,
+              datasets: [
+                {
+                  label: "Moves Per Bike",
+                  backgroundColor: colors_array,
+                  data: moveBikeData
+                }
+              ]
+            }
+            
+            new Chart(document.getElementById("movs-per-bike"), {
+                type: 'bar',
+                data: moveBikesChartData,
+                options: {
+                  title: {
+                    display: true,
+                    text: 'Number of Movements Per Bike'
+                  },
+                  legend: {
+                    display: false
+                  },
+                  scales: {
+                    yAxes: [{
+                      ticks: {
+                        beginAtZero: true,
+                        stepSize: 1
+                      }
+                    }]
+                  },
+                }
+            });
+
+            // movs_per_operator
+            var moveOpLabel = []
+            var moveOpData = []
+            for (var t = 0; t < response.movs_per_operator.length; t++) {
+              var currentData = response.movs_per_operator[t]
+              moveOpLabel.push(""+currentData.opera.split("@")[0])
+              moveOpData.push(currentData.counts)
+            }
+
+            var moveOpsChartData = {
+              labels: moveOpLabel,
+              datasets: [
+                {
+                  label: "Moves Per Operator",
+                  backgroundColor: colors_array,
+                  data: moveOpData
+                }
+              ]
+            }
+            
+            new Chart(document.getElementById("movs-per-operator"), {
+                type: 'bar',
+                data: moveOpsChartData,
+                options: {
+                  title: {
+                    display: true,
+                    text: 'Number of Movements Per Operator'
+                  },
+                  legend: {
+                    display: false
+                  },
+                  scales: {
+                    yAxes: [{
+                      ticks: {
+                        beginAtZero: true,
+                        stepSize: 1
+                      }
+                    }]
+                  },
+                }
+            });
+          }
+        });
       }
  
     </script>
@@ -359,7 +904,7 @@
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg bg-light navbar-light fixed-top">
       <div class="container">
-        <a href="user_page.html" class="navbar-brand">
+        <a href="/home" class="navbar-brand">
           <i class="fas fa-biking"></i>
           <span class="text-primary font-weight-bold">Bike</span>
           Sharing</a
@@ -374,7 +919,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ml-auto">
             <li class="nav-item">
-              <a href="#home" class="nav-link">Home</a>
+              <a href="/home" class="nav-link">Home</a>
             </li>
             <li class="nav-item">
               <a href="/logout" class="nav-link">Log out</a>
@@ -384,17 +929,17 @@
       </div>
     </nav>
 
-    <div id="map"></div>
+    <div id="map" class="hide-print"></div>
 
     <section id="main-page">
       <div class="container">
 
         <!--Track bikes-->
         <div class="start-form bg-light p-3">
-          <h2 class="m-heading">Welcome, Manager.</h2>
+          <h2 class="m-heading hide-print">Welcome, Manager.</h2>
           <br>
           <!--- Track Button -->
-          <div id="accord"> 
+          <div id="accord" class="hide-print"> 
             <button
               class="btn btn-primary"
               data-toggle="collapse" data-target="#TrackCollapse"
@@ -435,7 +980,7 @@
             <div class="form-group">
               <div class="row">
                 <div class="col-12">
-                  <div class="row">
+                  <div class="row hide-print">
                     <label>Generate report using the following dates </label>
                   </div>
                   <div class="row">
@@ -480,11 +1025,303 @@
                       <div class="collapse" id="graph-collapse" data-parent="#accord-graphs">
                           <div class="card card-body"
                             id="graph-collapse-body">
-                            Body... Graphs goes here
+                            <div class="row">
+                              <div class="col-12">
+                                <!--Table-->
+                                <div class="row">
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 
+                                          class="card-title" 
+                                          style="display: inline-block;"
+                                        ><i class="fas fa-pound-sign"></i> Total Income</h5> 
+                                        <p class="card-text">
+                                          <h4 id="total-income" 
+                                            style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 class="card-title"
+                                        style="display: inline-block;"
+                                        ><i class="fas fa-biking"></i> Total Trips</h5> 
+                                        <p class="card-text">
+                                          <h4 id="total-trips" 
+                                            style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 class="card-title"
+                                        style="display: inline-block;"
+                                        ><i class="fas fa-bell"></i> Popular Bike </h5> 
+                                        <p class="card-text">
+                                          <h4 id="popular-bike" 
+                                            style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 class="card-title"
+                                        style="display: inline-block;"
+                                        ><i class="fas fa-hand-holding-usd"></i> Profitable Bike</h5> 
+                                        <p class="card-text">
+                                          <h4 id="profitable-bike" 
+                                            style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <br>
+                                <div class="row">
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 
+                                          class="card-title" 
+                                          style="display: inline-block;"
+                                        ><i class="fas fa-toolbox"></i> Total Bikes Repaired</h5> 
+                                        <p class="card-text">
+                                          <h4 id="total-repaired" 
+                                            style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 class="card-title"
+                                        style="display: inline-block;"
+                                        ><i class="fas fa-truck-loading"></i> Total Bikes Moved</h5> 
+                                        <p class="card-text">
+                                          <h4 id="total-moved" 
+                                            style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 class="card-title"
+                                        style="display: inline-block;"
+                                        ><i class="fas fa-address-card"></i> Operator Most Repairs </h5> 
+                                        <p class="card-text">
+                                          <h4 id="ope-repairs" 
+                                            style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 class="card-title"
+                                        style="display: inline-block;"
+                                        ><i class="fas fa-user-tie"></i> Operator Most Moves</h5> 
+                                        <p class="card-text">
+                                          <h4 id="ope-moves" 
+                                            style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <br>
+                                <div class="row">
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 
+                                          class="card-title" 
+                                          style="display: inline-block;"
+                                        ><i class="fas fa-location-arrow"></i> Common Start</h5> 
+                                        <p class="card-text">
+                                          <h5 id="common-start" 
+                                            style="
+                                              font-weight: lighter;
+                                          "></h5>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 class="card-title"
+                                        style="display: inline-block;"
+                                        ><i class="fas fa-compass"></i> Common End</h5> 
+                                        <p class="card-text">
+                                          <h5 id="common-end" 
+                                            style="
+                                              font-weight: lighter;
+                                          "></h5>
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 class="card-title"
+                                        style="display: inline-block;"
+                                        ><i class="fas fa-exclamation-triangle"></i> Current Moves </h5> 
+                                        <p class="card-text" id="current-moves">
+                                         
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div class="col-3">
+                                    <div class="card  bg-light">
+                                      <div class="card-body">
+                                        <h5 class="card-title"
+                                        style="display: inline-block;"
+                                        ><i class="fas fa-exclamation-circle"></i>  Current Repairs</h5> 
+                                        <p class="card-text" id="current-repairs">
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!--Table-->
+
+                                <!--Graphs-->
+                                <div class="row">
+                                  
+                                </div>
+                                <!--Graphs-->
+
+                              </div>
+                            </div>
+
+
+                            <div class="row">
+                              <div class="col-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <canvas id="timelines"></canvas>
+                                    </div>
+                                </div>
+                              </div>
+                            </div>
+                            <div class="row">
+                              <div class="col-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <canvas id="income-per-bike"></canvas>
+                                    </div>
+                                </div>
+                              </div>
+                              <div class="col-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <canvas id="trip-per-bike"></canvas>
+                                    </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <!--Bars-->
+                            <div class="row">
+                              <div class="col-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <canvas id="reports-per-bike"></canvas>
+                                    </div>
+                                </div>
+                              </div>
+                              <div class="col-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <canvas id="repairs-per-operator"></canvas>
+                                    </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div class="row">
+                              <div class="col-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <canvas id="movs-per-bike"></canvas>
+                                    </div>
+                                </div>
+                              </div>
+                              <div class="col-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <canvas id="movs-per-operator"></canvas>
+                                    </div>
+                                </div>
+                              </div>
+                            </div>
+                            
                           </div>
                           <div class="card-footer">
-                          <div class="form-group">
-                            Footer
+                          <div class="form-group hide-print">
+                              <button
+                                  class="submitbox btn btn-success"
+                                  onClick="DownloadHistoryTrips()"
+                              >
+                                  Download History of Trips 
+                              </button> 
+
+                              <button
+                                  class="submitbox btn btn-success"
+                                  onClick="DownloadPDF()"
+                              >
+                                  Print PDF
+                              </button> 
                           </div>
                           </div>                
                       </div> 

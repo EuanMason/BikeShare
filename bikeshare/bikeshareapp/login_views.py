@@ -6,8 +6,8 @@ from util.decorators import auth_required
 from util.sql_query import *
 from django.http import HttpResponse, HttpResponseRedirect
 
-from bikeshareapp.models import User
-from bikeshareapp.rest_serializers import UserSerializer, UserLimitedSerializer
+from bikeshareapp.models import User, Trip
+from bikeshareapp.rest_serializers import UserSerializer, UserLimitedSerializer, TripSerializer
 
 
 
@@ -47,7 +47,16 @@ def check_if_login(request):
             currentTrip = User.objects.get(userid=userid)
             serialized_trip = UserSerializer(currentTrip)
             wallet_credit = dict(serialized_trip.data['wallet_id'])['credit']
-            return render(request, 'bikeshareapp/user_page.html', {'userid': userid, 'role': role, 'nickname': nickname, 'wallet': wallet_credit})
+            # Check if there is a trip on going
+            trip = None
+            queryset_trip = Trip.objects.filter(UserID=userid)
+            for qt in queryset_trip:
+                qts = TripSerializer(qt)
+                if (qts.data['end_time'] == qts.data['start_time'] ):
+                    trip = qts.data['trip_id']
+                    break
+            
+            return render(request, 'bikeshareapp/user_page.html', {'userid': userid, 'role': role, 'nickname': nickname, 'wallet': wallet_credit, 'trip': trip})
     except KeyError:
         return render(request, 'user_page.html', {'userid': 'not logged in'})
 

@@ -19,7 +19,8 @@ from django.db.models import F
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Sum
 
-
+from django.db.models.functions import TruncDate
+from django.db.models import Avg
 
 
 # The file rest_views.py is only to have the basic stuff
@@ -82,7 +83,7 @@ def getAllBikesBasedOnLocation(request, location):
     role = request.COOKIES['role']
     location = location.replace('+',' ')
     try:
-        locations = Address.objects.filter(Line1=location)
+        locations = Address.objects.filter(Line1=location) 
         if len(locations) == 0:
             locations = Address.objects.filter(Postcode=location)
         if len(locations) == 0:
@@ -247,7 +248,7 @@ def recalculateMoney(request):
 def returnBike(request):
     if request.method == 'POST':
         bike_id = request.data['bike_id']
-        location = request.data['location']
+        location = request.data['location'].replace(" ","")
         trip_id = request.data['trip_id']
         user_id = request.COOKIES['userid']
         try:
@@ -261,7 +262,7 @@ def returnBike(request):
         town = ""
         postcode = ""
 
-        queryset = Address.objects.filter(Line1=location)
+        queryset = Address.objects.filter(Line1=location) | Address.objects.filter(Postcode=location)
         if not queryset:
             address = location.replace(" ", "+")
             api_key = "AIzaSyD0SRiJJupEmCVUyh-WnilaPP00dcgBb_c"
@@ -280,7 +281,10 @@ def returnBike(request):
 
             Address.objects.update_or_create(Line1=location, City=town, Postcode=postcode, Longitude=long, Latitude=lat)
 
-        queryset = Address.objects.get(Line1=location)
+        try:
+            queryset = Address.objects.get(Line1=location) 
+        except:
+            queryset = Address.objects.get(Postcode=location)
 
         serialized = AddressSerializer(queryset, many=False)
 
@@ -333,7 +337,7 @@ def getAssignedBikes(request):
 @api_view(['POST'])
 @role_check(['operator'])
 def startRepairABike(request):
-    print(request)
+    # print(request)
     try:
         if request.COOKIES :
             data = request.data
@@ -352,8 +356,10 @@ def startRepairABike(request):
                 bikes.IsDefective = 1
                 bikes.save()
 
-                # Update reports
-                Repairs.objects.filter(BikeID=bikes.BikeID).update(InProgress=1,AssignedOperator=user_id)
+                currentUser = User.objects.get(userid=user_id)
+
+                # Update or create reports
+                Repairs.objects.filter(BikeID=bikes.BikeID).update_or_create(BikeID=bikes,InProgress=1,AssignedOperator=currentUser)
                 # Create the object if not exists
                 #repair, created = Repairs.objects.get_or_create(
                 #    BikeID = bikes.BikeID,
@@ -379,7 +385,7 @@ def startRepairABike(request):
 @api_view(['POST'])
 @role_check(['operator'])
 def endRepairABike(request):
-    print(request)
+    # print(request)
     try:
         if request.COOKIES :
             data = request.data
@@ -464,7 +470,7 @@ def moveBikeStart(request):
 @api_view(['POST'])
 @role_check(['operator'])
 def moveBikeEnd(request):
-    print(request)
+    # print(request)
     try:
         if request.COOKIES :
             data = request.data
@@ -614,7 +620,7 @@ def getAllOperators(request):
 @api_view(['GET'])
 @role_check(['manager'])
 def trips_in_daterange(request):
-    print(request.GET['start_date'])
+    # print(request.GET['start_date'])
     try:
         start_date = dateutil.parser.parse(request.GET["start_date"])
         end_date = dateutil.parser.parse(request.GET["end_date"])
@@ -623,7 +629,7 @@ def trips_in_daterange(request):
     except KeyError:
         queryset = Trip.objects.all()
 
-    print(queryset)
+    # print(queryset)
     serialized = TripSerializer(queryset, many=True)
     data_to_return = serialized.data
     response = {
@@ -687,10 +693,151 @@ def most_common_locations(request):
             endcount.update({trips.EndAddress_id: 1})
             startcount.update({trips.StartAddress_id: 1})
 
-    data = {'most_common_start': max(startcount, key=startcount.get),
-            'most_common_end': max(endcount, key=endcount.get)}
+    max_start = max(startcount, key=startcount.get)
+    max_end = max(endcount, key=endcount.get)
+    
+    common_start_query = Address.objects.get(LocationID=max_start)
+    common_start = AddressSerializer(common_start_query, many=False).data
+
+    common_end_query = Address.objects.get(LocationID=max_end)
+    common_end = AddressSerializer(common_end_query, many=False).data
+
+    data = {'most_common_start': common_start,
+            'most_common_end': common_end}
     response = {
         'data': data
 
     }
     return Response(response, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@role_check(['manager'])
+def report_data(request):
+    try:
+        start_date = dateutil.parser.parse(request.GET["start_date"])
+        end_date = dateutil.parser.parse(request.GET["end_date"])
+
+        # Transaction.objects.all().values('actor').annotate(total=Count('actor')).order_by('total')
+        # User.objects.all()
+        #     .filter(course='Course 1')
+        #     .annotate(registered_date=TruncDate('registered_at'))
+        #     .order_by('registered_date')
+        #     .values('registered_date')
+        #     .annotate(**{'total': Count('registered_at')})
+
+        # Trip count per day
+        queryset_trip_count = (Trip.objects.all()
+            .filter(Date__range=(start_date, end_date))
+            .annotate(date_start=TruncDate('StartTime'))
+            .order_by('date_start')
+            .values('date_start')
+            .annotate(total=Count('StartTime')))
+
+        # Trip count per bike
+        queryset_trip_count_bike = (Trip.objects.all()
+            .filter(Date__range=(start_date, end_date))
+            .annotate(bike=F('BikeID__BikeID'))
+            .values('bike')
+            .annotate(total=Count('BikeID'))
+            .order_by('-total')
+        )
+
+        # Income per day
+        queryset_income_day = (Trip.objects.all()
+            .filter(Date__range=(start_date, end_date))
+            .annotate(date_start=TruncDate('StartTime'))
+            .order_by('date_start')
+            .values('date_start')
+            .annotate(total=Sum('Cost')))
+
+        # Income per bike avg
+        queryset_income_day_avg = (Trip.objects.all()
+            .filter(Date__range=(start_date, end_date))
+            .annotate(bike=F('BikeID__BikeID'))
+            .values('bike')
+            .annotate(total=Avg('Cost'))
+            .order_by('-total')
+        )
+
+        # Count reports per bike
+        queryset_cnt_rep = (
+            Repairs.objects.all()
+                .annotate(bike=F('BikeID__BikeID'))
+                .values('bike')
+                .order_by('bike')
+                .annotate(Count('bike'))
+        )
+
+        # Count movements of bike
+        queryset_cnt_mov = (
+            Movement.objects.all()
+                .annotate(bike=F('BikeID__BikeID'))
+                .values('bike')
+                .order_by('bike')
+                .annotate(Count('bike'))
+        )
+
+        # Count rep per op
+        queryset_cnt_repairs_op = (
+            Repairs.objects.all()
+                .annotate(opera=F('AssignedOperator__userid'))
+                .values('opera')
+                .annotate(counts=Count('opera'))
+                .order_by('-counts')
+        )
+
+        # Count mov per op
+        queryset_cnt_mov_op = (
+            Movement.objects.all()
+                .annotate(opera=F('MoveOperator__userid'))
+                .values('opera')
+                .annotate(counts=Count('opera'))
+                .order_by('-counts')
+        )
+
+        # How many bikes are moving?
+        queryset_bikes_moving = Bike.objects.filter(IsAvailable=2)
+
+        # How many bikes are repairing
+        queryset_bikes_repair = Bike.objects.filter(IsAvailable=3)
+
+        # How many bikes were repaired?
+        queryset_bikes_moved = Repairs.objects.filter(InProgress=-1)
+
+        # How many bikes were moved?
+        queryset_bikes_repaired = Movement.objects.filter(InProgress=-1)
+
+        bikes_moving_ser = BikeSerializer(queryset_bikes_moving, many=True).data
+        bikes_repair_ser = BikeSerializer(queryset_bikes_repair, many=True).data
+
+        popular_bike = queryset_trip_count_bike[0] if len(queryset_trip_count_bike) > 0 else None
+        profit_bike = queryset_income_day_avg[0] if len(queryset_income_day_avg) > 0 else None
+        opera_most_repa = queryset_cnt_repairs_op[0] if len(queryset_cnt_repairs_op) > 0 else None
+        opera_most_movs = queryset_cnt_mov_op[0] if len(queryset_cnt_mov_op) > 0 else None
+
+        response = {
+            "trip_count_per_day": list(queryset_trip_count),
+            "income_per_day": list(queryset_income_day),
+            "reports_per_bike": list(queryset_cnt_rep),
+            "movs_per_bike": list(queryset_cnt_mov),
+            "moving_bikes": bikes_moving_ser,
+            "cnt_moving_bikes": len(queryset_bikes_moved),
+            "repairing_bikes": bikes_repair_ser,
+            "cnt_repair_bikes": len(queryset_bikes_repaired),
+            "trip_per_bikes": list(queryset_trip_count_bike),
+            "average_income_per_bike": list(queryset_income_day_avg),
+            "repairs_per_operator": list(queryset_cnt_repairs_op),
+            "movs_per_operator": list(queryset_cnt_mov_op),
+            "popular_bike": popular_bike,
+            "profit_bike": profit_bike,
+            "opera_most_repa": opera_most_repa,
+            "opera_most_movs": opera_most_movs
+        }
+
+        return Response( response, status=status.HTTP_200_OK)
+
+        
+    except KeyError:
+        queryset = Trip.objects.all()
+
+    

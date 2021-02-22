@@ -79,4 +79,5 @@ urlpatterns = [
     path('total_income/', total_income),
     path('trip_count/', trip_count),
     path('most_common_locations/', most_common_locations),
+    path('report-data/', report_data)
 ]
