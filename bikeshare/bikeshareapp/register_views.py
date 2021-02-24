@@ -16,8 +16,17 @@ def register_view(request):
     password = request.POST.get("password", '')
 
     if nickname and email and password:
-        user = User(nickname=nickname, userid=email, password=password)
-        user.save()
-        return HttpResponse("Register Successful!")
+        # Check if user exists
+        userTry = User.objects.filter(userid=email)
+        if( len(userTry) == 0): # User does not exits
+             # Create wallet
+            new_wallet = Wallet(Credit=0)
+            new_wallet.save()
+            # Create user
+            user = User(nickname=nickname, userid=email, password=password, WalletID=new_wallet)
+            user.save()
+            return render(request, 'bikeshareapp/index.html', {'status': 'COMPLETE'})
+        else:
+            return render(request, 'bikeshareapp/index.html', {'status': 'EXISTED'})
     else:
-        return HttpResponse("Please input complete account number or password!")
+        return render(request, 'bikeshareapp/index.html', {'status': 'INCOMPLETE'})
