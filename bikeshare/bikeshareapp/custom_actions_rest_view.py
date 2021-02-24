@@ -88,7 +88,7 @@ def getAllBikesBasedOnLocation(request, location):
             locations = Address.objects.filter(Postcode=location)
         if len(locations) == 0:
             return Response(status=status.HTTP_404_NOT_FOUND)
-        
+
         locationObj = locations[0]
         if role == 'user':
             # For customer we only need the available bikes and not defective
@@ -137,7 +137,17 @@ def getAllBikesBasedOnLocation(request, location):
 def getAvailableLocationsOfBikes(request):
     locations_to_return = {}
 
-    queryset = Address.objects.all()
+    # get the bikes to know their location
+    bike_address = Bike.objects.filter(IsAvailable=1).values('AddressLocationID_id')
+    list_bike_address = list(bike_address)
+    print(list_bike_address)
+    list_id_address = []
+    for ba in bike_address:
+        list_id_address += list(ba.values())
+    list_id_address = list(set(list_id_address))
+
+    # return addresses
+    queryset = Address.objects.filter(LocationID__in=list_id_address)
     serialized = AddressSerializer(queryset, many=True)
     locations_to_return = serialized.data
 
@@ -268,18 +278,37 @@ def returnBike(request):
             api_key = "AIzaSyD0SRiJJupEmCVUyh-WnilaPP00dcgBb_c"
             url = "https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}".format(address, api_key)
             result = requests.get(url).json()
-            for i in result['results'][0]["address_components"]:
-                if "postal_town" in i["types"]:
-                    town = i["long_name"]
+            if(len(result['results']) > 0):
+                print(result['results'][0]["address_components"])
+                for i in result['results'][0]["address_components"]:
+                    if "postal_town" in i["types"]:
+                        town = i["long_name"]
 
-            for i in result['results'][0]["address_components"]:
-                if "postal_code" in i["types"]:
-                    postcode = i["long_name"]
+                for i in result['results'][0]["address_components"]:
+                    if "postal_code" in i["types"]:
+                        postcode = i["long_name"]
+                        postcode = postcode.replace(" ","")
+                
+                line1 = location
+                for i in result['results'][0]["address_components"]:
+                    if "route" in i["types"]:
+                        if line1 == location:
+                            line1 = ""
+                        line1 += i["long_name"] + " "
+                    if "sublocality" in i["types"]:
+                        if line1 == location:
+                            line1 = ""
+                        line1 += i["long_name"]
 
-            lat = result['results'][0]["geometry"]["location"]["lat"]
-            long = result['results'][0]["geometry"]["location"]["lng"]
+                lat = result['results'][0]["geometry"]["location"]["lat"]
+                long = result['results'][0]["geometry"]["location"]["lng"]
 
-            Address.objects.update_or_create(Line1=location, City=town, Postcode=postcode, Longitude=long, Latitude=lat)
+                
+
+                Address.objects.update_or_create(Line1=line1, City=town, Postcode=postcode, Longitude=long, Latitude=lat)
+            else:
+                # Try postcode
+                return Response(status=status.HTTP_404_NOT_FOUND)
 
         try:
             queryset = Address.objects.get(Line1=location) 

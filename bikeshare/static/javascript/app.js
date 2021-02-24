@@ -108,6 +108,7 @@ function HideModal() {
 };
 
 function bikeIDErrorSubmit() {
+    console.log("test")
     var xcsrft = $.cookie("csrftoken") //"bV2JXP0TnIbUX5Mmq0iF4lUfC34ctY5uZwOKGnaeLwFV8I8lP7OPYLBrLTFcHLKT"; // should get this from cookes
     var bikeid = window.currentBike  //document.querySelector("#bikeid").value;
     var comment = $("#report-problem").val()

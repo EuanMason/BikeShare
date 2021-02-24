@@ -115,6 +115,11 @@
                 $('#payment').modal('show'); 
                 $("#payment-info-modal").text("Your total cost is: "+costDisplay)
                 window.currentCost = data.cost;
+              },
+              error: function(response, textStatus, errorThrown ) {
+                if (response.status == 404) {
+                  alert("This is not a valid postcode/address. Please enter a correct one")
+                }
               }
             });
           }

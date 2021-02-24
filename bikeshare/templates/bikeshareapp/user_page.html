@@ -66,8 +66,7 @@
         if(user_credit <= 0) {
           $('#ride-form-main').hide()
         }
-        console.log(trip)
-        if(trip != None) {
+        if(trip != 'None') {
           $('#ride-form-main').hide()
           $('#current-trip').show()
         }
@@ -124,6 +123,10 @@
 
      function showMap(results) {
        var postcode = $( "#postcode" ).val()
+       if (postcode.split(' ').join('').length == 0) {
+         alert("ERROR: Please write a postcode")
+         return
+       }
        postcode = postcode.replace(' ','')
        if (postcode.length > 0) {
          $.ajax({
@@ -256,6 +259,11 @@
 
             $('#main-container-bikes').html(stringHtml);
           },
+          error: function(response, textStatus, errorThrown ) {
+            if (response.status == 404) {
+              alert("There is no bike in this place. Try another one")
+            }
+          }
         });
        }
      }
@@ -396,7 +404,7 @@
                           </button>
                           <button type="button" class="btn btn-secondary btn-block" 
                           data-dismiss="modal">
-                          Close
+                          Cancel
                           </button>
                       </div>
                   </div>

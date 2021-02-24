@@ -31,6 +31,7 @@ def rent_view(request):
         if bike.IsAvailable == 0 or bike.IsDefective == 1:
             return JsonResponse({'state': 1})
         bike.IsAvailable = 0
+        bike.save()
         time_now = time.localtime()
         start_time = time.strftime("%Y-%m-%d %H:%M:%S", time_now)
         start_date = start_time[:10]
