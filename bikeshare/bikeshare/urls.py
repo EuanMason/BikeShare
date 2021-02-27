@@ -20,19 +20,15 @@ from django.views.generic.base import RedirectView
 
 from bikeshareapp import login_views
 from bikeshareapp import register_views
-from bikeshareapp.frontend_views import *
 
 from django.urls import include, path
 from rest_framework import routers
-from bikeshareapp import views  # progsd-bike-share\bikeshare\bikeshareapp\views.py
 from bikeshareapp import rest_views  # progsd-bike-share\bikeshare\bikeshareapp\rest_views.py
 from bikeshareapp import rent_views  # progsd-bike-share\bikeshare\bikeshareapp\rent_views.py
 from bikeshareapp.report_view import *
 from bikeshareapp.custom_actions_rest_view import *
 
 router = routers.DefaultRouter()
-router.register(r'users', views.UserViewSet)
-router.register(r'groups', views.GroupViewSet)
 # Register the Rest Views
 router.register(r'wallet', rest_views.WalletViewSet, basename='wallet')
 router.register(r'address', rest_views.AddressViewSet)
@@ -40,6 +36,7 @@ router.register(r'bike', rest_views.BikeViewSet)
 router.register(r'trip', rest_views.TripViewSet)
 router.register(r'repairs', rest_views.RepairsViewSet)
 
+# All the URLs that is being used on the application
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^login/$', login_views.user_login),
@@ -54,23 +51,16 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('recalculate-wallet/', recalculateMoney),
     path('all-bikes/', getAllBikes),
-    path('get_user/', getUser),
     path('get_wallet/', getWallet),
     path('return_bike/', returnBike),
-    path('get_Location/', getLocation),
     path('locations-of-availabe-bikes/', getAvailableLocationsOfBikes),
     path('report_defective/', report_defective),
-    path(r'operator/', include('bikeshareapp.operator_urls')),
-    url('get-operators/', getAllOperators),
-    url('assign-defective-to-operator/', assignBikeToOperator),
-    url('get-operators-defectives/', getAssignedBikes),
     path('all-bikes-location/<str:location>/', getAllBikesBasedOnLocation),
     path('rent_bike/', rent_views.rent_view),
     path(
         'start_rent_bike/<int:trip_id>/',
         rent_views.start_rent_view
     ),
-    # url(r'^home/rent_bike/start_rent_bike/(?P<trip_id>\d+)/$', rent_views.start_rent_view),
     path('bike-repaired-by-operator-start/',startRepairABike),
     path('bike-repaired-by-operator-end/',endRepairABike),
     path('bike-move-start/', moveBikeStart),
@@ -82,4 +72,10 @@ urlpatterns = [
     path('trip_count/', trip_count),
     path('most_common_locations/', most_common_locations),
     path('report-data/', report_data)
+
+    # path('get_user/', getUser),
+    # path('get_Location/', getLocation),
+    # url('get-operators/', getAllOperators),
+    # url('assign-defective-to-operator/', assignBikeToOperator),
+    # url('get-operators-defectives/', getAssignedBikes),
 ]
