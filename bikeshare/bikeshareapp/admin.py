@@ -2,7 +2,7 @@ from django.contrib import admin
 from bikeshareapp import models
 
 admin.site.register(models.User)
-# Register your models here.
+# Register models to be accessed on the admin view
 admin.site.register(models.Wallet)
 admin.site.register(models.Address)
 admin.site.register(models.Bike)
