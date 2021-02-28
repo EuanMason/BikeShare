@@ -1,3 +1,7 @@
+/**
+ * This file contains the operator logic to be executed user_page.html
+ */
+
 // Init basic global variables
 let map;
 let markersList = []
