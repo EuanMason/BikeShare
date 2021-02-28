@@ -1,4 +1,6 @@
-
+/**
+ * This script only contains five possible routes to simulate the animation on operator and maneger view when tracking bikes is set
+ */
 var routes_map = {
     route1: 
     [{
@@ -7516,25 +7518,4 @@ var routes_map = {
       lat: 55.855920000000005,
       lng: -4.21034
     }]
-    /*
-     var directionsData = response.routes[0].legs[0];
-            var steps = [];
-
-            for (var i = 0; i < directionsData.steps.length; i++) {
-            	var step = directionsData.steps[i]
-              
-              for (var j = 0; j < step.lat_lngs.length; j++) {
-              	//console.log(step.lat_lngs)
-              	//break
-              	var obj = {
-                  lat: step.lat_lngs[j].lat(),
-                  lng: step.lat_lngs[j].lng()
-                }
-                steps.push(obj)
-              }
-            }
-
-              console.log(steps);
-    */
 };
-//console.log(rout1Json)

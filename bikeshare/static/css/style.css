@@ -3,6 +3,10 @@
   --dark-color: #333;
 }
 
+/*
+This file includes all the general style for the aplication 
+*/
+
 /* Navbar */
 .navbar {
   opacity: 0.96;
@@ -33,7 +37,9 @@
   margin: 0.75rem;
 }
 
-
+/*
+To show the bikes in a kind of grid on fronted
+*/
 button.grid-style {
   display: block ;
   width: 100%;

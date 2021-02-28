@@ -1,63 +1,72 @@
+<!--
+  This file renders on the login view. 
+-->
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      href="https://cdn.bootcdn.net/ajax/libs/skeleton/2.0.4/skeleton.css"
-      rel="stylesheet"
-    />
 
-    <style>
-        html,
-      body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-      .text-center {
-        text-align: center;
-      }
-      .container {
-          position: center;
-          margin-top: 150px;
-      }
-      h1 {
-          text-align: center;
-      }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.bootcdn.net/ajax/libs/skeleton/2.0.4/skeleton.css" rel="stylesheet" />
 
-    </style>
-    <title>Sharing Bike</title>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Log In</h1>
+  <style>
+    /*
+    Basic style to improve the login page
+    */
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
 
-      <form id="user-form" action="/login/" method="post">
-        <div>
-          {% csrf_token %}
-        </div>
-        <div>
-          <label for="username">User Name</label>
-          <input type="text" id="username" name="userid" class="u-full-width" />
-        </div>
-        <div>
-          <label for="pwd">PassWord</label>
-          <input type="password" id="pwd" name="password" class="u-full-width" />
-        </div>
+    .text-center {
+      text-align: center;
+    }
 
-        <div>
-          <input type="submit" value="Login" class="u-full-width" />
-        </div>
-        <p class="text-center"> Don't have an account? please <a href="to_register/">click here</a>  to register.</p>
-      </form>
+    .container {
+      position: center;
+      margin-top: 150px;
+    }
 
-      <p>{{ info }}</p>
+    h1 {
+      text-align: center;
+    }
+  </style>
+  <title>Sharing Bike</title>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Log In</h1>
+
+    <form id="user-form" action="/login/" method="post">
+      <div>
+        {% csrf_token %}
+      </div>
+      <!-- Username field -->
+      <div>
+        <label for="username">User Name</label>
+        <input type="text" id="username" name="userid" class="u-full-width" />
+      </div>
+      <!-- Password field -->
+      <div>
+        <label for="pwd">PassWord</label>
+        <input type="password" id="pwd" name="password" class="u-full-width" />
+      </div>
+      <!-- Button to submit the fields -->
+      <div>
+        <input type="submit" value="Login" class="u-full-width" />
+      </div>
+      <p class="text-center"> Don't have an account? please <a href="to_register/">click here</a> to register.</p>
+    </form>
+
+    <!-- This should not exists, instead an alert should be displayed -->
+    <p>{{ info }}</p>
 
     {% load static %}
+    <!-- Load scripts -->
     <script src="{% static "javascript/app.js" %}"></script>
-  </body>
+</body>
+
 </html>
-
-
-

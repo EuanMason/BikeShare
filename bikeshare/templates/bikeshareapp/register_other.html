@@ -1,78 +1,93 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      href="https://cdn.bootcdn.net/ajax/libs/skeleton/2.0.4/skeleton.css"
-      rel="stylesheet"
-    />
 
-    <script
-      src="{% static "javascript/jquery-3.5.1.min.js"%}"
-      crossorigin="anonymous"
-    ></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Load library -->
+  <link href="https://cdn.bootcdn.net/ajax/libs/skeleton/2.0.4/skeleton.css" rel="stylesheet" />
 
-    <script>
-      let status = "{{status}}"
-      if (status == "COMPLETE") {
-        alert("Register completed!")
-        $(location).attr('href','/login');
-      }
-      else if (status == "EXISTED") {
-        alert("This email is in used. Try another please")
-      }
-      else if (status == "INCOMPLETE") {
-        alert("Please fill all the fields")
-      }
-    </script>
-
-    <style>
-      .text-center {
-        text-align: center;
-      }
-    </style>
+  <style>
+    /*
+      Local style to display the view
+      */
+    .text-center {
+      text-align: center;
+    }
+  </style>
 
 
-    <title>Sharing Bike</title>
-  </head>
-  <body>
-    <div class="container">
-      <h1>Register</h1>
+  <title>Sharing Bike</title>
+</head>
 
-        <form id="user-form" action="/create-a-administrative-role-963852741/" method="post">
-          {% csrf_token %}
-        <div>
-          <label for="username">User Name</label>
-          <input type="text" id="username" name="nickname" class="u-full-width" required />
-        </div>
+<body>
+  <!-- Container for the form -->
+  <div class="container">
+    <h1>Register</h1>
 
-        <div>
-          <label for="email">Email</label>
-          <input type="text" id="email" name="email" class="u-full-width" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" required  />
-        </div>
+    <form id="user-form" action="/create-a-administrative-role-963852741/" method="post">
+      {% csrf_token %}
 
-        <div>
-          <label for="role">Role</label>
-          <select name="role" id="role">
-            <option value="manager">Manager</option>
-            <option value="operator">Operator</option>
-          </select>
-        </div>
+      <!-- Ask for username -->
+      <div>
+        <label for="username">User Name</label>
+        <input type="text" id="username" name="nickname" class="u-full-width" required />
+      </div>
 
-        <div>
-          <label for="password">Set PassWord</label>
-          <input type="password" id="pwd" name="password" class="u-full-width" required/>
-        </div>
+      <!-- Ask for email -->
+      <div>
+        <label for="email">Email</label>
+        <input type="text" id="email" name="email" class="u-full-width" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$"
+          required />
+      </div>
 
-        <div>
-          <input type="submit" value="Register" class="u-full-width" />
-        </div>
-      </form>
-    
-    <p class="text-center"> Already in the system? Please <a href="/login/">click here</a>  to log in!</p>
+      <!-- Ask for role -->
+      <div>
+        <label for="role">Role</label>
+        <select name="role" id="role">
+          <option value="manager">Manager</option>
+          <option value="operator">Operator</option>
+        </select>
+      </div>
+
+      <!-- Ask for password -->
+      <div>
+        <label for="password">Set PassWord</label>
+        <input type="password" id="pwd" name="password" class="u-full-width" required />
+      </div>
+
+      <!-- Button to submit the form -->
+      <div>
+        <input type="submit" value="Register" class="u-full-width" />
+      </div>
+    </form>
+
+    <!-- Redirect to login -->
+    <p class="text-center"> Already in the system? Please <a href="/login/">click here</a> to log in!</p>
     {% load static %}
-    <script src="{% static "javascript/app.js" %}"></script>
-  </body>
+
+</body>
+
+<!-- Load jquery script -->
+<script src="{% static " javascript/jquery-3.5.1.min.js"%}" crossorigin="anonymous"></script>
+
+<!-- Specif script for this view -->
+<script>
+  // Validate the status that API is responding
+  let status = "{{status}}"
+  // If the register was successful
+  if (status == "COMPLETE") {
+    alert("Register completed!")
+    $(location).attr('href', '/login');
+  }
+  // If registration implies a user that already exists
+  else if (status == "EXISTED") {
+    alert("This email is in used. Try another please")
+  }
+  else if (status == "INCOMPLETE") {
+    alert("Please fill all the fields")
+  }
+</script>
+
 </html>
