@@ -26,6 +26,8 @@ function showInitMap(results) {
 
             // Iterate over the array to create the locations markers
             for (let i = 0; i < arrayData.length; i++) {
+
+                // Get data to be used
                 var currentData = arrayData[i];
                 var longitudeData = arrayData[i].longitude;
                 var latitudeData = arrayData[i].latitude;
@@ -78,6 +80,7 @@ function goToTrip() {
 function showMap(results) {
     // Get the postcode valude
     var postcode = $("#postcode").val()
+    // Validate the postcode is not empty neither only spaces
     if (postcode.split(' ').join('').length == 0) {
         // In case the input is empty
         alert("ERROR: Please write a postcode")

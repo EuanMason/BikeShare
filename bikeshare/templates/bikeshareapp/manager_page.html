@@ -1,1330 +1,419 @@
 <!DOCTYPE html>
 {% load static %}
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link
-      rel="stylesheet"
-      href="https://use.fontawesome.com/releases/v5.15.2/css/all.css"
-      integrity="sha384-vSIIfh2YWi9wW0r9iZe7RJPrKwp6bG+s9QZMoITbCckVJqGCCRhc+ccxNcdpHuYu"
-      crossorigin="anonymous"
-    />
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
-      integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l"
-      crossorigin="anonymous"
-    />
-      <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/all.min.css' %}" />
 
-    <script src="{% static "javascript/routes.js" %}"></script>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Load styles from boostrap and fontawesome libraries and local styles-->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.2/css/all.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/style.css' %}" />
+  <link rel="stylesheet" href="{% static 'css/all.min.css' %}" />
 
-    <script
-      src="{% static "javascript/jquery-3.5.1.min.js"%}"
-      integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
-      crossorigin="anonymous"
-    ></script>
+  <style type="text/css">
+    /*
+      Local styles to use in this view
+      */
+    #map {
+      height: 57%;
+    }
 
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      padding: 0;
+    }
 
-
-    <script src="https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js"></script>
-
-
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
-    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
-
-    <style type="text/css">
-      #map {
-        height: 57%;
-      }
-
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-      /**
+    /**
       Based on the solution on:
         asprin (2013). How to print HTML content on click of a button, but not the page? [duplicate]
         https://stackoverflow.com/questions/16894683/how-to-print-html-content-on-click-of-a-button-but-not-the-page
         Accessed on: 22/02/2021
       */
-      @media print {
-        html {
-          zoom: 160%;
-        }
-        .hide-print{
-          display:none;
-        }
-
-      }
-    </style>
-    <script>
-      let map;
-      let imgs = "{% static "img/" %}"
-      let markersList = []
-      let markerBallonList = []
-      let markerBikeList = []
-      let markerBikeListMoving = []
-      let markerBikeListMovingNames = []
-      let moveInterval;
-      let markerCluster;
-      function initMap() {
-          map = new google.maps.Map(document.getElementById("map"), {
-              center: { lat: 55.860789, lng: -4.250311 },
-              zoom: 12,
-              mapTypeId: "terrain",
-          });
-          // Create a <script> tag and set the USGS URL as the source.
-          const script = document.createElement("script");
-          script.src =
-          "https://developers.google.com/maps/documentation/javascript/examples/json/earthquake_GeoJSONP.js";
-          document.getElementsByTagName("head")[0].appendChild(script);
-          showInitMap();
+    @media print {
+      html {
+        zoom: 160%;
       }
 
-      function showInitMap (results) {
-        // Ser date max on end date picker
-        var maxDate = new Date()
-        var maxDateIso = maxDate.toISOString()
-        var maxDateValue = maxDateIso.split("T")[0]
-        $("#end-date-report").val(maxDateValue)
-
-        $.ajax({
-          type: "GET",
-          dataType: "json",
-          url: "/locations-of-availabe-bikes/",
-          data: {},
-          success: function (response) {
-              //console.log(response)
-              //alert(response.location);
-              var arrayData = response.location;
-
-              for (let j = 0; j < markerBallonList.length; j++) {
-                markerBallonList[j].setMap(null);
-              }
-              markerBallonList = []
-
-              for (let i = 0; i < arrayData.length; i++) {
-                  var currentData = arrayData[i];
-                  var longitudeData = arrayData[i].longitude;
-                  var latitudeData = arrayData[i].latitude;
-
-                  const latLng = new google.maps.LatLng(latitudeData, longitudeData);
-                  const marker = new google.maps.Marker({
-                      position: latLng,
-                      map: map,
-                      title: "location_id_: "+(currentData.location_id),
-                  })
-
-                  const contentPopup = 
-                  '<div id="content">' +
-                  '<div id="siteNotice">' +
-                  "</div>" +
-                  '<h3 id="firstHeading" class="firstHeading">'+currentData.line_1+'</h3>' +
-                  '<div id="bodyContent">' +
-                  "<p><b>Postcode:</b> "+currentData.postcode+"</p>" +
-                  "<p><b>City:</b> "+currentData.city+"</p>" +
-                  "</div>" +
-                  "</div>";
-
-                  const infoPopup = new google.maps.InfoWindow({
-                    content: contentPopup,
-                  });
-
-                  marker.addListener("click", () => {
-                    infoPopup.open(map, marker);
-                  });
-
-                  markerBallonList.push(marker)
-              }
-          },
-        });
+      .hide-print {
+        display: none;
       }
 
-      function GetTrack(){
-          var html="Current Bike ID: "+$("#bikeid").val()+"<br>"
-          +"Current Location: "+$("#postcode").val();
-          //$("#TrackCollapseBody").html(html);      
-          
-          // get all the bikes possibles
-          $.ajax({
-            type: "GET",
-            dataType: "json",
-            url: "/track-bikes/",
-            data: {},
-            success: function(response){
-              var data = response.data;
-              //console.log(data)
+    }
 
-              clearInterval(moveInterval);
+    #time p {
+      color: #000000;
+      font-size: 45px;
+      font-weight: bold;
+      margin-left: 350px;
+      margin-bottom: 0px;
+      overflow: hidden;
+    }
+  </style>
 
-              for (let j = 0; j < markersList.length; j++) {
-                markersList[j].setMap(null);
-              }
-              markersList = []
+  <title>Bike Sharing</title>
+</head>
 
-              for (let k = 0; k < markerBallonList.length; k++) {
-                markerBallonList[k].setMap(null);
-              }
-              markerBallonList = []
-              for (let l = 0; l < markerBikeList.length; l++) {
-                markerBikeList[l].setMap(null);
-              }
-              markerBikeList = []
-              if( markerCluster ) {
-                markerCluster.clearMarkers();
-              }
-
-              
-              for (let p = 0; p < markerBikeListMoving.length; p++) {
-                markerBikeListMoving[p].setMap(null);
-              }
-              markerBikeListMoving = []
-              markerBikeListMovingNames = []
-
-              var center = new google.maps.LatLng(55.860789,  -4.250311);
-
-              window.setTimeout(() => {
-                map.panTo(center);
-                map.setZoom(12);
-                map.setCenter(center);
-              }, 30);
-
-              const image = {
-                url: imgs + '/bike.png',
-                origin: new google.maps.Point(0, 0),
-                scaledSize: new google.maps.Size(60, 60),
-              };
-
-              // To show bike icon on maps
-              var pi = Math.PI
-              var degrees = 180;
-              var radious = 0.001; //0.0001 - 
-              var randomess_l1 = 100
-              var randomess_l2 = 200
-
-              var listBikesOps = []
-              
-
-              //calcRoute();
-
-              for (let m = 0; m < data.length; m++) {
-                let currentB = data[m]
-                let bikeLocation = currentB.location
-
-                var longitudeData = bikeLocation.longitude;
-                var latitudeData = bikeLocation.latitude;
-
-                // Random position
-                // From: https://gis.stackexchange.com/questions/37615/how-to-place-markers-on-the-outline-of-a-circle-in-google-maps
-                // Accesed on: Feb, 11 2021
-                var randomness_degrees = Math.floor(Math.random() * (randomess_l2 - randomess_l1) + randomess_l1);
-                
-                var longitudeBike = Math.cos(randomness_degrees * pi / 180 ) * radious + longitudeData;
-                var latitudeBike = Math.sin(randomness_degrees * pi / 180 ) * radious + latitudeData;
-
-
-                var myLatLong = new google.maps.LatLng(latitudeBike, longitudeBike);
-
-                const marker = new google.maps.Marker({
-                  position: myLatLong,
-                  //map: map,
-                  title: "bike_: "+(currentB.bike_id),
-                  icon: image,
-                  label: {
-                    text: "No. "+currentB.bike_id,
-                    color: "#ffffff",
-                    fontSize: "20px",
-                    fontWeight: "bold"
-                  },
-                })
-                // First get the current rented bikes
-                if (currentB.is_available == 0 && currentB.is_defective == 0) {
-                  const markerMov = new google.maps.Marker({
-                    position: myLatLong,
-                    map: map,
-                    title: "bike_: "+(currentB.bike_id),
-                    icon: image,
-                    label: {
-                      text: "No. "+currentB.bike_id,
-                      color: "#ffffff",
-                      fontSize: "20px",
-                      fontWeight: "bold"
-                    },
-                  })
-                  markerBikeListMoving.push(markerMov)
-                  markerBikeListMovingNames.push(currentB)
-                }
-                // Second get the available bikes to be clustered
-                else if(currentB.is_available == 1 ) {
-                  //console.log(randomness_degrees)
-                  ///console.log(bikeLocation.postcode)
-                  markerBikeList.push(marker)
-                }
-                // Finally get the list of bike with some extra property (repairing or moving)
-                else {
-                  listBikesOps.push(currentB)
-                }
-              }
-
-              // Marker cluster
-              markerCluster = new MarkerClusterer(map, markerBikeList, {
-                maxZoom: 15,
-                imagePath:
-                  "https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m",
-              });
-
-              // generate text to tell status of bikes under operations
-              let innerTextOps = ""
-              for(var u = 0; u <listBikesOps.length; u++){
-                var cBk = listBikesOps[u]
-                if(cBk.is_available == 2) { // move
-                  innerTextOps += "<p><b>Bike No. "+cBk.bike_id+":</b> It's being moved</p>"
-                }
-                else if(cBk.is_available == 3) { // repairing
-                  innerTextOps += "<p><b>Bike No. "+cBk.bike_id+":</b> It's under repairment</p>"
-                }
-                else {
-                  innerTextOps += "<p><b>Bike No. "+cBk.bike_id+":</b> No idea. Contact admin</p>"
-                }
-              }
-              if (listBikesOps.length == 0) {
-                innerTextOps = "<b> There is no bike under any activity by operators</b>"
-              }
-              //innerTextOps +="<br>"
-              innerTextOps +="<b>Bikes currently rented: </b>"
-              for(var m = 0; m < markerBikeListMovingNames.length; m++) {
-                var cUBk = markerBikeListMovingNames[m]
-                innerTextOps += "<p>Bike No. "+cUBk.bike_id+"</p>"
-              }
-
-              $("#TrackCollapseBody").html(innerTextOps);
-
-              // move bikes
-              let counterInterval = 0
-              moveInterval = setInterval(function() {
-                for(var u = 0; u < markerBikeListMoving.length; u ++) {
-                  var currRoute = routes_map['route'+((u%5)+1)]
-                  if (counterInterval < currRoute.length) {
-                    var currCorr = currRoute[counterInterval]
-                    markerBikeListMoving[u].setPosition( new google.maps.LatLng( currCorr.lat, currCorr.lng ) );
-                  }
-                }
-                counterInterval++
-              }, 500); 
-            }
-          });
-      }
-      function EndTrack() {
-          clearInterval(moveInterval);
-
-          for (let j = 0; j < markersList.length; j++) {
-            markersList[j].setMap(null);
-          }
-          markersList = []
-
-          for (let k = 0; k < markerBallonList.length; k++) {
-            markerBallonList[k].setMap(null);
-          }
-          markerBallonList = []
-          for (let l = 0; l < markerBikeList.length; l++) {
-            markerBikeList[l].setMap(null);
-          }
-          markerBikeList = []
-          if( markerCluster ) {
-            markerCluster.clearMarkers();
-          }
-          for (let p = 0; p < markerBikeListMoving.length; p++) {
-            markerBikeListMoving[p].setMap(null);
-          }
-          markerBikeListMoving = []
-          markerBikeListMovingNames = []
-          showInitMap();
-      }
-
-      function DownloadHistoryTrips() {
-        var d1 = $("#start-date-report").val()
-        var d1Array = d1.split('-')
-        var dateStart = new Date(d1Array[0], d1Array[1]-1, d1Array[2])
-        var d2 = $("#end-date-report").val()
-        var d2Array = d2.split('-')
-        var dateEnd = new Date(d2Array[0], d2Array[1]-1, d2Array[2])
-
-        var dateStartStr = dateStart.toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'})
-        var dateStarEnd = dateEnd.toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'})
-      
-        // Get all trips
-        $.ajax({
-          type: "GET",
-          dataType: "json",
-          url: "/trips_in_daterange",
-          data: {
-            start_date: dateStartStr,
-            end_date: dateStarEnd
-          },
-          success: function(response){
-            var data = response.data;
-            var infoCsv = "Bike, Cost, Date, Start Address, End Address, User\n"
-            for(var i = 0; i < data.length; i++) {
-              var currentRow = data[i]
-              var currentDate = new Date(currentRow['date']).toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'})
-              infoCsv += currentRow.bike.bike_id+", "
-              infoCsv += currentRow.cost + ", "
-              infoCsv += currentDate+", "
-              infoCsv += currentRow.start_address.line_1+" - "+ currentRow.start_address.postcode+", "
-              infoCsv += currentRow.end_address.line_1+" - "+ currentRow.end_address.postcode+", "
-              infoCsv += currentRow.user.user_id + "\n "
-            }
-
-            // download
-            /**
-             * Based on: John, Xavier. (2014). How to export JavaScript array info to csv (on client side)?. 
-             * https://stackoverflow.com/questions/14964035/how-to-export-javascript-array-info-to-csv-on-client-side
-             * Accessed on: 22/02/2021
-            */
-            var blobReport = new Blob([infoCsv], { type: 'text/csv;charset=utf-8;' })
-            var linkReport = document.createElement("a")
-            var urlReport = URL.createObjectURL(blobReport)
-            linkReport.setAttribute("href", urlReport)
-            linkReport.setAttribute("download", "report-trips-"+dateStartStr+"-"+dateStarEnd+".csv")
-            linkReport.style.visibility = 'hidden'
-            document.body.appendChild(linkReport)
-            linkReport.click()
-            document.body.removeChild(linkReport)
-          }
-        });
-      }
-      function DownloadPDF() {
-          print()
-      }
-
-      function generateReport() {
-        var d1 = $("#start-date-report").val()
-        var d1Array = d1.split('-')
-        var dateStart = new Date(d1Array[0], d1Array[1]-1, d1Array[2])
-        var d2 = $("#end-date-report").val()
-        var d2Array = d2.split('-')
-        var dateEnd = new Date(d2Array[0], d2Array[1]-1, d2Array[2])
-
-        var dateStartStr = dateStart.toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'})
-        var dateStarEnd = dateEnd.toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'})
-      
-        // Total income
-        $.ajax({
-          type: "GET",
-          dataType: "json",
-          url: "/total_income",
-          data: {
-            start_date: dateStartStr,
-            end_date: dateStarEnd
-          },
-          success: function(response){
-            var data = response.data;
-            var text = "No info"
-            if (data.length > 0) {
-              text = data[0].toFixed(2)
-            }
-            $("#total-income").text(text)
-          }
-        });
-
-        // Trip count
-        $.ajax({
-          type: "GET",
-          dataType: "json",
-          url: "/trip_count",
-          data: {
-            start_date: dateStartStr,
-            end_date: dateStarEnd
-          },
-          success: function(response){
-            var data = response.data;
-            var text = "No info"
-            if (data.length > 0) {
-              text = data[0]
-            }
-            $("#total-trips").text(text)
-          }
-        });
-
-        // Most common locations:
-        $.ajax({
-          type: "GET",
-          dataType: "json",
-          url: "/most_common_locations",
-          data: {
-            start_date: dateStartStr,
-            end_date: dateStarEnd
-          },
-          success: function(response){
-            var data = response.data;
-            var text1 = data.most_common_start.line_1 + ", "+ data.most_common_start.postcode 
-            var text2 = data.most_common_end.line_1 + ", "+ data.most_common_end.postcode 
-
-            $("#common-start").text(text1)
-            $("#common-end").text(text2)
-          }
-        });
-
-        // average trip duration, average pay
-        $.ajax({
-          type: "GET",
-          dataType: "json",
-          url: "/report-data",
-          data: {
-            start_date: dateStartStr,
-            end_date: dateStarEnd
-          },
-          success: function(response){
-            var data = response.data;
-
-            var popularBike = "No. "+response.popular_bike.bike
-            var profBike = "No. "+response.profit_bike.bike
-            $("#popular-bike").text(popularBike)
-            $("#profitable-bike").text(profBike)
-
-            var totalRep = response.cnt_repair_bikes
-            var totalMov = response.cnt_moving_bikes
-            var opeReap = response.opera_most_repa.opera.split("@")[0]
-            var opeMove = response.opera_most_movs.opera.split("@")[0]
-            $("#total-repaired").text(totalRep)
-            $("#total-moved").text(totalMov)
-            $("#ope-repairs").text(opeReap)
-            $("#ope-moves").text(opeMove)
-
-            var mvngBikes = ""
-            for (var i = 0; i < response.moving_bikes.length; i++) {
-              mvngBikes+="No. "+response.moving_bikes[i].bike_id+"<br>"
-            }
-
-            var rprBikes = ""
-            for(var j = 0; j <response.repairing_bikes.length; j++) {
-              rprBikes +="No. "+ response.repairing_bikes[j].bike_id+"<br>"
-            }
-
-            $("#current-moves").html(mvngBikes)
-            $("#current-repairs").html(rprBikes)
-
-            // Adding graphs
-            var colors_array = ["#d8d4ea", "#004fa4", "#eb1629", "#05173e", '#e51837', "#0477c2", "#0082c4", "#f0c1b3", "#9bcfd0", "#bd959f", "#989887", "#f6b969", "#037272", "#acc5c8", "#dac45f", "#c2a248", "#93b8d3", "#c0cbc0", "#a5b1a8", "#8e8e96", "#66695c"]
-            
-            // Timeline
-            var maxDate = null;
-            var minDate = null;
-            if (response.trip_count_per_day) {
-              maxDate = new Date(response.trip_count_per_day[0].date_start)
-              minDate = new Date(response.trip_count_per_day[0].date_start)
-            }
-            for(var a = 0; a < response.trip_count_per_day.length; a++) {
-              var r = response.trip_count_per_day[a]
-              if (new Date(r.date_start) > maxDate) {
-                maxDate = new Date(r.date_start)
-              }
-              if (new Date(r.date_start) < minDate) {
-                minDate = new Date(r.date_start)
-              } 
-            } 
-
-            var maxDatePay = null;
-            var minDatePay = null;
-            if (response.income_per_day) {
-              maxDatePay = new Date(response.income_per_day[0].date_start)
-              minDatePay = new Date(response.income_per_day[0].date_start)
-            }
-            for(var a = 0; a < response.income_per_day.length; a++) {
-              var r = response.income_per_day[a]
-              if (new Date(r.date_start) > maxDatePay) {
-                maxDatePay = new Date(r.date_start)
-              }
-              if (new Date(r.date_start) < minDatePay) {
-                minDatePay = new Date(r.date_start)
-              } 
-            }   
-
-            // gdt the real min y max
-            var realMax = null
-            var realMin = null
-            if (maxDatePay > maxDate) {
-              realMax = maxDatePay
-            }
-            else {
-              realMax = maxDate
-            }
-            if (minDatePay < minDate) {
-              realMin = minDatePay
-            }
-            else {
-              realMin = minDate
-            }
-
-            // Create array with dates
-            var datesGraph = []
-            var currentD = realMin
-            while(currentD <= realMax) {
-              datesGraph.push(currentD.toLocaleDateString("en-US", {month: '2-digit', day: '2-digit',  year: 'numeric'}))
-              currentD.setDate(currentD.getDate()+1)
-            }
-            // fill data arrays
-            var dataTrip = []
-            var dataIncome = []
-            for(var x = 0; x < datesGraph.length; x++) {
-              var d = datesGraph[x]
-              var found = false
-              for(var y = 0; y < response.trip_count_per_day.length; y++) {
-                var dayTrip = response.trip_count_per_day[y]
-                if(new Date(d).getTime() == new Date(dayTrip.date_start).getTime()) {
-                  dataTrip.push(dayTrip.total)
-                  found = true
-                  break
-                }
-              }
-              if(found == false) {
-                dataTrip.push(0)
-              }
-              
-              var foundPay = false
-              for(var z = 0; z < response.income_per_day.length; z++) {
-                var day = response.income_per_day[z]
-                if(new Date(d).getTime() == new Date(day.date_start).getTime()) {
-                  dataIncome.push(day.total.toFixed(2))
-                  foundPay = true
-                  break
-                }
-              }
-              if(foundPay == false) {
-                dataIncome.push(0)
-              }
-            }
-
-            // creating the chart
-            var timeline = {
-              labels: datesGraph,
-              datasets: [{
-                data: dataTrip,
-                backgroundColor: 'transparent',
-                borderColor: colors_array[0],
-                borderWidth: 4,
-                pointBackgroundColor: colors_array[0],
-                label: 'Trips',
-                yAxisID: 'Trips',
-              },
-              {
-                data: dataIncome,
-                backgroundColor: 'transparent',
-                borderColor: colors_array[1],
-                borderWidth: 4,
-                pointBackgroundColor: colors_array[1],
-                label: 'Income',
-                yAxisID: 'Income',
-              }]
-            };
-            new Chart(document.getElementById("timelines"), {
-            type: 'line',
-            data: timeline,
-            options: {
-              scales: {
-                yAxes: [
-                {
-                  id: 'Trips',
-                  type: 'linear',
-                  position: 'left',
-                  ticks: {
-                    beginAtZero: false
-                  }
-                }, 
-                {
-                  id: 'Income',
-                  type: 'linear',
-                  position: 'right',
-                  ticks: {
-                    beginAtZero: false
-                  }
-                }
-                ]
-              },
-              legend: {
-                display: true
-              },
-              title: {
-                  display: true,
-                  text: 'Trips vs Income per day'
-              }
-            }
-            });       
-            
-            // pie chart
-            var labelPie = []
-            var dataPie = []
-            for (var q=0; q<response.average_income_per_bike.length; q++) {
-              var currentBikeInc = response.average_income_per_bike[q]
-              labelPie.push("No. "+currentBikeInc.bike)
-              dataPie.push(currentBikeInc.total)
-            }
-
-            var pieData = {
-              labels: labelPie,
-              datasets: [
-                {
-                  label: "Income Per Bike Avg",
-                  backgroundColor: colors_array,
-                  data: dataPie
-                }
-              ]
-            }
-
-            new Chart(document.getElementById("income-per-bike"), {
-                type: 'doughnut',
-                data: pieData,
-                options: {
-                  title: {
-                    display: true,
-                    text: 'Average Income Per Bike'
-                  }
-                }
-            });
-
-            // Bar chart
-            // trip_per_bikes
-            var tripBikeLabel = []
-            var tripBikeData = []
-            for (var t = 0; t < response.trip_per_bikes.length; t++) {
-              var currentData = response.trip_per_bikes[t]
-              tripBikeLabel.push("No. "+currentData.bike)
-              tripBikeData.push(currentData.total)
-            }
-
-            var tripBikeChartData = {
-              labels: tripBikeLabel,
-              datasets: [
-                {
-                  label: "Trips Per Bike",
-                  backgroundColor: colors_array,
-                  data: tripBikeData
-                }
-              ]
-            }
-            
-            new Chart(document.getElementById("trip-per-bike"), {
-                type: 'bar',
-                data: tripBikeChartData,
-                options: {
-                  title: {
-                    display: true,
-                    text: 'Number of Trips Per Bike'
-                  },
-                  legend: {
-                    display: false
-                  },
-                }
-            });
-
-            // reports_per_bike
-            var reportsBikeLabel = []
-            var reportsBikeData = []
-            for (var t = 0; t < response.reports_per_bike.length; t++) {
-              var currentData = response.reports_per_bike[t]
-              reportsBikeLabel.push("No. "+currentData.bike)
-              reportsBikeData.push(currentData.bike__count)
-            }
-
-            var reportBikeChartData = {
-              labels: reportsBikeLabel,
-              datasets: [
-                {
-                  label: "Reports Per Bike",
-                  backgroundColor: colors_array,
-                  data: reportsBikeData
-                }
-              ]
-            }
-            
-            new Chart(document.getElementById("reports-per-bike"), {
-                type: 'bar',
-                data: reportBikeChartData,
-                options: {
-                  title: {
-                    display: true,
-                    text: 'Number of Reports Per Bike'
-                  },
-                  legend: {
-                    display: false
-                  },
-                  scales: {
-                    yAxes: [{
-                      ticks: {
-                        beginAtZero: true,
-                        stepSize: 1
-                      }
-                    }]
-                  },
-                }
-            });
-
-            // repairs_per_operator
-            var reportsOpLabel = []
-            var reportsOpData = []
-            for (var t = 0; t < response.repairs_per_operator.length; t++) {
-              var currentData = response.repairs_per_operator[t]
-              reportsOpLabel.push(""+currentData.opera.split("@")[0])
-              reportsOpData.push(currentData.counts)
-            }
-
-            var reportOpChartData = {
-              labels: reportsOpLabel,
-              datasets: [
-                {
-                  label: "Reports Per Operator",
-                  backgroundColor: colors_array,
-                  data: reportsOpData
-                }
-              ]
-            }
-            
-            new Chart(document.getElementById("repairs-per-operator"), {
-                type: 'bar',
-                data: reportOpChartData,
-                options: {
-                  title: {
-                    display: true,
-                    text: 'Number of Repairs Per Operator'
-                  },
-                  legend: {
-                    display: false
-                  },
-                  scales: {
-                    yAxes: [{
-                      ticks: {
-                        beginAtZero: true,
-                        stepSize: 1
-                      }
-                    }]
-                  },
-                }
-            });
-
-            // movs_per_bike
-            var moveBikeLabel = []
-            var moveBikeData = []
-            for (var t = 0; t < response.movs_per_bike.length; t++) {
-              var currentData = response.movs_per_bike[t]
-              moveBikeLabel.push("No. "+currentData.bike)
-              moveBikeData.push(currentData.bike__count)
-            }
-
-            var moveBikesChartData = {
-              labels: moveBikeLabel,
-              datasets: [
-                {
-                  label: "Moves Per Bike",
-                  backgroundColor: colors_array,
-                  data: moveBikeData
-                }
-              ]
-            }
-            
-            new Chart(document.getElementById("movs-per-bike"), {
-                type: 'bar',
-                data: moveBikesChartData,
-                options: {
-                  title: {
-                    display: true,
-                    text: 'Number of Movements Per Bike'
-                  },
-                  legend: {
-                    display: false
-                  },
-                  scales: {
-                    yAxes: [{
-                      ticks: {
-                        beginAtZero: true,
-                        stepSize: 1
-                      }
-                    }]
-                  },
-                }
-            });
-
-            // movs_per_operator
-            var moveOpLabel = []
-            var moveOpData = []
-            for (var t = 0; t < response.movs_per_operator.length; t++) {
-              var currentData = response.movs_per_operator[t]
-              moveOpLabel.push(""+currentData.opera.split("@")[0])
-              moveOpData.push(currentData.counts)
-            }
-
-            var moveOpsChartData = {
-              labels: moveOpLabel,
-              datasets: [
-                {
-                  label: "Moves Per Operator",
-                  backgroundColor: colors_array,
-                  data: moveOpData
-                }
-              ]
-            }
-            
-            new Chart(document.getElementById("movs-per-operator"), {
-                type: 'bar',
-                data: moveOpsChartData,
-                options: {
-                  title: {
-                    display: true,
-                    text: 'Number of Movements Per Operator'
-                  },
-                  legend: {
-                    display: false
-                  },
-                  scales: {
-                    yAxes: [{
-                      ticks: {
-                        beginAtZero: true,
-                        stepSize: 1
-                      }
-                    }]
-                  },
-                }
-            });
-          }
-        });
-      }
- 
-    </script>
-
-    <title>Bike Sharing</title>
-  </head>
-  <body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg bg-light navbar-light fixed-top">
-      <div class="container">
-        <a href="/home" class="navbar-brand">
-          <i class="fas fa-biking"></i>
-          <span class="text-primary font-weight-bold">Bike</span>
-          Sharing</a
-        >
-        <button
-          class="navbar-toggler"
-          data-toggle="collapse"
-          data-target="#navbarNav"
-        >
-          <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-          <ul class="navbar-nav ml-auto">
-            <li class="nav-item">
-              <a href="/home" class="nav-link">Home</a>
-            </li>
-            <li class="nav-item">
-              <a href="/logout" class="nav-link">Log out</a>
-            </li>
-          </ul>
-        </div>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg bg-light navbar-light fixed-top">
+    <div class="container">
+      <a href="/home" class="navbar-brand">
+        <i class="fas fa-biking"></i>
+        <span class="text-primary font-weight-bold">Bike</span>
+        Sharing</a>
+      <button class="navbar-toggler" data-toggle="collapse" data-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a href="/home" class="nav-link">Home</a>
+          </li>
+          <li class="nav-item">
+            <a href="/logout" class="nav-link">Log out</a>
+          </li>
+        </ul>
       </div>
-    </nav>
+    </div>
+  </nav>
 
-    <div id="map" class="hide-print"></div>
+  <div id="map" class="hide-print"></div>
 
-    <section id="main-page">
-      <div class="container">
+  <section id="main-page">
+    <div class="container">
 
-        <!--Track bikes-->
-        <div class="start-form bg-light p-3">
-          <h2 class="m-heading hide-print">Welcome, Manager.</h2>
-          <br>
-          <!--- Track Button -->
-          <div id="accord" class="hide-print"> 
-            <button
-              class="btn btn-primary"
-              data-toggle="collapse" data-target="#TrackCollapse"
-              data-parent="#accord" aria-controls="TrackCollapse"
-              onClick="GetTrack()">
-                Track All Bikes
-            </button>  
-            
-            <!--- Track Collapse --->
-            <div class="collapse" id="TrackCollapse" data-parent="#accord">
-                <div class="card card-body"
-                  id="TrackCollapseBody">
-                </div>
-                <div class="card-footer">
-                <div class="form-group">
-                  <button
-                      class="submitbox btn btn-success"
-                      onClick="GetTrack()"
-                  >
-                      Refresh Tracking 
-                  </button> 
+      <!--Track bikes-->
+      <div class="start-form bg-light p-3">
+        <h2 class="m-heading hide-print">Welcome, Manager.</h2>
+        <br>
+        <!--- Track Button -->
+        <div id="accord" class="hide-print">
+          <button class="btn btn-primary" data-toggle="collapse" data-target="#TrackCollapse" data-parent="#accord"
+            aria-controls="TrackCollapse" onClick="GetTrack()">
+            Track All Bikes
+          </button>
 
-                  <button
-                      class="submitbox btn btn-success"
-                      data-toggle="collapse" data-target="#TrackCollapse"
-                      onClick="EndTrack()"
-                  >
-                      End Tracking 
-                  </button> 
-                </div>
-                </div>                
-            </div> 
+          <!--- Track Collapse --->
+          <div class="collapse" id="TrackCollapse" data-parent="#accord">
+            <div class="card card-body" id="TrackCollapseBody">
+            </div>
+            <div class="card-footer">
+              <div class="form-group">
+                <button class="submitbox btn btn-success" onClick="GetTrack()">
+                  Refresh Tracking
+                </button>
+
+                <button class="submitbox btn btn-success" data-toggle="collapse" data-target="#TrackCollapse"
+                  onClick="EndTrack()">
+                  End Tracking
+                </button>
+              </div>
+            </div>
           </div>
-          <!--Track bikes-->
-          <br>
+        </div>
+        <!--Track bikes-->
+        <br>
 
-          <div>
-            <div class="form-group">
-              <div class="row">
-                <div class="col-12">
-                  <div class="row hide-print">
-                    <label>Generate report using the following dates </label>
+        <div>
+          <div class="form-group">
+            <div class="row">
+              <div class="col-12">
+                <div class="row hide-print">
+                  <label>Generate report using the following dates </label>
+                </div>
+                <div class="row">
+                  <div class="col-sm">
+                    <label for="start-date-report">Start Date: </label>
+                    <input class="form-control" placeholder="Expirency Date" type="date" id="start-date-report"
+                      class="box" value="2021-01-01" min="2021-02-01" required />
                   </div>
-                  <div class="row">
-                    <div class="col-sm">
-                      <label for="start-date-report">Start Date: </label>
-                      <input
-                        class="form-control"
-                        placeholder="Expirency Date"
-                        type="date"
-                        id="start-date-report"
-                        class="box"
-                        value="2021-01-01"
-                        min="2021-02-01"
-                        required
-                      />
-                    </div>
-                    <div class="col-sm">
-                      <label for="end-date-report">End Date: </label>
-                      <input
-                        class="form-control"
-                        placeholder="Expirency Date"
-                        type="date"
-                        id="end-date-report"
-                        class="box"
-                        min="2021-02-01"
-                        required
-                      />
-                    </div>
+                  <div class="col-sm">
+                    <label for="end-date-report">End Date: </label>
+                    <input class="form-control" placeholder="Expirency Date" type="date" id="end-date-report"
+                      class="box" min="2021-02-01" required />
                   </div>
-                  <div class="row">
-                    <div class="col-12" id="accord-graphs">
-                      <br>
-                      <button
-                        class="submitbox btn btn-primary"
-                        data-toggle="collapse" data-target="#graph-collapse"
-                        data-parent="#accord-graphs" aria-controls="graph-collapse"
-                        onclick="generateReport()"
-                      >
-                        Generate Report
-                      </button>
+                </div>
+                <div class="row">
+                  <div class="col-12" id="accord-graphs">
+                    <br>
+                    <button class="submitbox btn btn-primary" data-toggle="collapse" data-target="#graph-collapse"
+                      data-parent="#accord-graphs" aria-controls="graph-collapse" onclick="generateReport()">
+                      Generate Report
+                    </button>
 
-                      <div class="collapse" id="graph-collapse" data-parent="#accord-graphs">
-                          <div class="card card-body"
-                            id="graph-collapse-body">
+                    <div class="collapse" id="graph-collapse" data-parent="#accord-graphs">
+                      <div class="card card-body" id="graph-collapse-body">
+                        <div class="row">
+                          <div class="col-12">
+                            <!--Table-->
                             <div class="row">
-                              <div class="col-12">
-                                <!--Table-->
-                                <div class="row">
 
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 
-                                          class="card-title" 
-                                          style="display: inline-block;"
-                                        ><i class="fas fa-pound-sign"></i> Total Income</h5> 
-                                        <p class="card-text">
-                                          <h4 id="total-income" 
-                                            style="
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i
+                                        class="fas fa-pound-sign"></i> Total Income</h5>
+                                    <p class="card-text">
+                                    <h4 id="total-income" style="
                                               font-weight: bold;
                                               font-size: xx-large;
                                           "></h4>
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 class="card-title"
-                                        style="display: inline-block;"
-                                        ><i class="fas fa-biking"></i> Total Trips</h5> 
-                                        <p class="card-text">
-                                          <h4 id="total-trips" 
-                                            style="
-                                              font-weight: bold;
-                                              font-size: xx-large;
-                                          "></h4>
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 class="card-title"
-                                        style="display: inline-block;"
-                                        ><i class="fas fa-bell"></i> Popular Bike </h5> 
-                                        <p class="card-text">
-                                          <h4 id="popular-bike" 
-                                            style="
-                                              font-weight: bold;
-                                              font-size: xx-large;
-                                          "></h4>
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 class="card-title"
-                                        style="display: inline-block;"
-                                        ><i class="fas fa-hand-holding-usd"></i> Profitable Bike</h5> 
-                                        <p class="card-text">
-                                          <h4 id="profitable-bike" 
-                                            style="
-                                              font-weight: bold;
-                                              font-size: xx-large;
-                                          "></h4>
-                                        </p>
-                                      </div>
-                                    </div>
+                                    </p>
                                   </div>
                                 </div>
-                                <br>
-                                <div class="row">
+                              </div>
 
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 
-                                          class="card-title" 
-                                          style="display: inline-block;"
-                                        ><i class="fas fa-toolbox"></i> Total Bikes Repaired</h5> 
-                                        <p class="card-text">
-                                          <h4 id="total-repaired" 
-                                            style="
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i class="fas fa-biking"></i>
+                                      Total Trips</h5>
+                                    <p class="card-text">
+                                    <h4 id="total-trips" style="
                                               font-weight: bold;
                                               font-size: xx-large;
                                           "></h4>
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 class="card-title"
-                                        style="display: inline-block;"
-                                        ><i class="fas fa-truck-loading"></i> Total Bikes Moved</h5> 
-                                        <p class="card-text">
-                                          <h4 id="total-moved" 
-                                            style="
-                                              font-weight: bold;
-                                              font-size: xx-large;
-                                          "></h4>
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 class="card-title"
-                                        style="display: inline-block;"
-                                        ><i class="fas fa-address-card"></i> Operator Most Repairs </h5> 
-                                        <p class="card-text">
-                                          <h4 id="ope-repairs" 
-                                            style="
-                                              font-weight: bold;
-                                              font-size: xx-large;
-                                          "></h4>
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 class="card-title"
-                                        style="display: inline-block;"
-                                        ><i class="fas fa-user-tie"></i> Operator Most Moves</h5> 
-                                        <p class="card-text">
-                                          <h4 id="ope-moves" 
-                                            style="
-                                              font-weight: bold;
-                                              font-size: xx-large;
-                                          "></h4>
-                                        </p>
-                                      </div>
-                                    </div>
+                                    </p>
                                   </div>
                                 </div>
-                                <br>
-                                <div class="row">
+                              </div>
 
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 
-                                          class="card-title" 
-                                          style="display: inline-block;"
-                                        ><i class="fas fa-location-arrow"></i> Common Start</h5> 
-                                        <p class="card-text">
-                                          <h5 id="common-start" 
-                                            style="
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i class="fas fa-bell"></i>
+                                      Popular Bike </h5>
+                                    <p class="card-text">
+                                    <h4 id="popular-bike" style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i
+                                        class="fas fa-hand-holding-usd"></i> Profitable Bike</h5>
+                                    <p class="card-text">
+                                    <h4 id="profitable-bike" style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <br>
+                            <div class="row">
+
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i class="fas fa-toolbox"></i>
+                                      Total Bikes Repaired</h5>
+                                    <p class="card-text">
+                                    <h4 id="total-repaired" style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i
+                                        class="fas fa-truck-loading"></i> Total Bikes Moved</h5>
+                                    <p class="card-text">
+                                    <h4 id="total-moved" style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i
+                                        class="fas fa-address-card"></i> Operator Most Repairs </h5>
+                                    <p class="card-text">
+                                    <h4 id="ope-repairs" style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i
+                                        class="fas fa-user-tie"></i> Operator Most Moves</h5>
+                                    <p class="card-text">
+                                    <h4 id="ope-moves" style="
+                                              font-weight: bold;
+                                              font-size: xx-large;
+                                          "></h4>
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            <br>
+                            <div class="row">
+
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i
+                                        class="fas fa-location-arrow"></i> Common Start</h5>
+                                    <p class="card-text">
+                                    <h5 id="common-start" style="
                                               font-weight: lighter;
                                           "></h5>
-                                        </p>
-                                      </div>
-                                    </div>
+                                    </p>
                                   </div>
+                                </div>
+                              </div>
 
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 class="card-title"
-                                        style="display: inline-block;"
-                                        ><i class="fas fa-compass"></i> Common End</h5> 
-                                        <p class="card-text">
-                                          <h5 id="common-end" 
-                                            style="
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i class="fas fa-compass"></i>
+                                      Common End</h5>
+                                    <p class="card-text">
+                                    <h5 id="common-end" style="
                                               font-weight: lighter;
                                           "></h5>
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 class="card-title"
-                                        style="display: inline-block;"
-                                        ><i class="fas fa-exclamation-triangle"></i> Current Moves </h5> 
-                                        <p class="card-text" id="current-moves">
-                                         
-                                        </p>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div class="col-3">
-                                    <div class="card  bg-light">
-                                      <div class="card-body">
-                                        <h5 class="card-title"
-                                        style="display: inline-block;"
-                                        ><i class="fas fa-exclamation-circle"></i>  Current Repairs</h5> 
-                                        <p class="card-text" id="current-repairs">
-                                        </p>
-                                      </div>
-                                    </div>
+                                    </p>
                                   </div>
                                 </div>
+                              </div>
 
-                                <!--Table-->
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i
+                                        class="fas fa-exclamation-triangle"></i> Current Moves </h5>
+                                    <p class="card-text" id="current-moves">
 
-                                <!--Graphs-->
-                                <div class="row">
-                                  
+                                    </p>
+                                  </div>
                                 </div>
-                                <!--Graphs-->
+                              </div>
 
+                              <div class="col-3">
+                                <div class="card  bg-light">
+                                  <div class="card-body">
+                                    <h5 class="card-title" style="display: inline-block;"><i
+                                        class="fas fa-exclamation-circle"></i> Current Repairs</h5>
+                                    <p class="card-text" id="current-repairs">
+                                    </p>
+                                  </div>
+                                </div>
                               </div>
                             </div>
 
+                            <!--Table-->
 
+                            <!--Graphs-->
                             <div class="row">
-                              <div class="col-12">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <canvas id="timelines"></canvas>
-                                    </div>
-                                </div>
-                              </div>
-                            </div>
-                            <div class="row">
-                              <div class="col-6">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <canvas id="income-per-bike"></canvas>
-                                    </div>
-                                </div>
-                              </div>
-                              <div class="col-6">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <canvas id="trip-per-bike"></canvas>
-                                    </div>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <!--Bars-->
-                            <div class="row">
-                              <div class="col-6">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <canvas id="reports-per-bike"></canvas>
-                                    </div>
-                                </div>
-                              </div>
-                              <div class="col-6">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <canvas id="repairs-per-operator"></canvas>
-                                    </div>
-                                </div>
-                              </div>
-                            </div>
 
-                            <div class="row">
-                              <div class="col-6">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <canvas id="movs-per-bike"></canvas>
-                                    </div>
-                                </div>
-                              </div>
-                              <div class="col-6">
-                                <div class="card">
-                                    <div class="card-body">
-                                        <canvas id="movs-per-operator"></canvas>
-                                    </div>
-                                </div>
-                              </div>
                             </div>
-                            
+                            <!--Graphs-->
+
                           </div>
-                          <div class="card-footer">
-                          <div class="form-group hide-print">
-                              <button
-                                  class="submitbox btn btn-success"
-                                  onClick="DownloadHistoryTrips()"
-                              >
-                                  Download History of Trips 
-                              </button> 
+                        </div>
 
-                              <button
-                                  class="submitbox btn btn-success"
-                                  onClick="DownloadPDF()"
-                              >
-                                  Print PDF
-                              </button> 
+
+                        <div class="row">
+                          <div class="col-12">
+                            <div class="card">
+                              <div class="card-body">
+                                <canvas id="timelines"></canvas>
+                              </div>
+                            </div>
                           </div>
-                          </div>                
-                      </div> 
+                        </div>
+                        <div class="row">
+                          <div class="col-6">
+                            <div class="card">
+                              <div class="card-body">
+                                <canvas id="income-per-bike"></canvas>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-6">
+                            <div class="card">
+                              <div class="card-body">
+                                <canvas id="trip-per-bike"></canvas>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!--Bars-->
+                        <div class="row">
+                          <div class="col-6">
+                            <div class="card">
+                              <div class="card-body">
+                                <canvas id="reports-per-bike"></canvas>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-6">
+                            <div class="card">
+                              <div class="card-body">
+                                <canvas id="repairs-per-operator"></canvas>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div class="row">
+                          <div class="col-6">
+                            <div class="card">
+                              <div class="card-body">
+                                <canvas id="movs-per-bike"></canvas>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="col-6">
+                            <div class="card">
+                              <div class="card-body">
+                                <canvas id="movs-per-operator"></canvas>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                      </div>
+                      <div class="card-footer">
+                        <div class="form-group hide-print">
+                          <button class="submitbox btn btn-success" onClick="DownloadHistoryTrips()">
+                            Download History of Trips
+                          </button>
+
+                          <button class="submitbox btn btn-success" onClick="DownloadPDF()">
+                            Print PDF
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1333,38 +422,64 @@
           </div>
         </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <style type="text/css">
-		#time p{
-			color: #000000;
-			font-size: 45px;
-			font-weight: bold;
-			margin-left:350px;
-			margin-bottom:0px;
-			overflow: hidden;
-		}
-	</style>
+  <!-- This script cannot be on a separate file because of the dependey on Google Maps and Django-->
+  <script>
+    // Init basic global variables
+    let imgs = "{% static "img/" %}"
 
-    <script
-      src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-      integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"
-      integrity="sha384-+YQ4JLhjyBLPDQt//I+STsc9iw4uQqACwlvpslubQzn4u2UU2UFM80nGisd026JF"
-      crossorigin="anonymous"
-    ></script>
+    /**
+     * Initialize the map on the customer view
+     * This method uses the Google Maps rest API to create and show the map
+    */
+    function initMap() {
 
-    <script
-      defer
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhwTKf3kSrByV-QeOT5hWAXN7CtM2VHFE&callback=initMap"
-    ></script>
+      // Create the map on the div with id "map"
+      map = new google.maps.Map(document.getElementById("map"), {
+        center: { lat: 55.860789, lng: -4.250311 },
+        zoom: 12,
+        mapTypeId: "terrain",
+      });
+      // Create a <script> tag and set the USGS URL as the source.
+      const script = document.createElement("script");
+      script.src =
+        "https://developers.google.com/maps/documentation/javascript/examples/json/earthquake_GeoJSONP.js";
+      document.getElementsByTagName("head")[0].appendChild(script);
+      // Call the function to populate the map
+      showInitMap();
+    }
 
-    <script src="{% static "javascript/app.js" %}"></script>
+  </script>
 
-  </body>
+  <!--  Load the route samples to simulate movement when bikes are being tracked-->
+  <script src="{% static "javascript/routes.js" %}"></script>
+
+  <!-- Load jquery script -->
+  <script src="{% static "javascript/jquery-3.5.1.min.js"%}" crossorigin="anonymous"></script>
+  <!-- Load jquery cookie - This is used to manage the cookies on the app -->
+  <script type="text/javascript" src="{% static "javascript/jquery.cookie.min.js"%}"></script>
+
+  <!-- Library used to show the graphs -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+
+  <!-- Load clustering markers library -->
+  <script src="https://unpkg.com/@googlemaps/markerclustererplus/dist/index.min.js"></script>
+
+  <!-- Basic libraries to enhace the interface -->
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+
+  <!-- Google maps call -->
+  <script defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhwTKf3kSrByV-QeOT5hWAXN7CtM2VHFE&callback=initMap"></script>
+
+  <!-- Call custom javascript functions -->
+  <script src="{% static "javascript/app-manager.js" %}"></script>
+
+</body>
+
 </html>
 
 <!-- AIzaSyAhwTKf3kSrByV-QeOT5hWAXN7CtM2VHFE -->
