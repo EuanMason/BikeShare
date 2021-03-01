@@ -5,6 +5,44 @@
 {% load static %}
 <html lang="en">
 
+<script>
+  function login() {
+   var userid = document.querySelector("#userid").value;
+   var password = document.querySelector("#password").value;
+  $.ajax({
+   type:"POST",
+   dataType:"json",
+   url:"/login/",
+   data:{
+    "userid":userid,
+    "password":password
+   },
+   beforeSend : function(){
+				if(userid == "" || password == ""){
+					alert("The username or password cannot be empty.")
+					return false;
+				}
+				return true;
+			},
+			success: function(data){
+				//{"success" : true}
+				//{"success" : false , "errorMsg" : "User name or password error!"}
+				//{"success" : false , "errorMsg" : "Sorry, your account is invalid"}
+				if(data.success){
+					//Send get request to jump to the page
+					document.location.href = "../index.html";
+				}
+        else { 
+        // If Username and/or doesn't match in database, this error appears.          
+         callModalAlert("User name or password is invalid!");
+         return false
+        }        
+			}
+   })
+}
+</script>
+
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
