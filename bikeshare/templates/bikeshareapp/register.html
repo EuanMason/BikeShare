@@ -6,8 +6,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Load library -->
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
   <link href="https://cdn.bootcdn.net/ajax/libs/skeleton/2.0.4/skeleton.css" rel="stylesheet" />
-
+  
   <style>
     /*
       Local style to display the view
@@ -20,11 +21,12 @@
   <title>Sharing Bike</title>
 </head>
 
-
 <body>
+  <div id="modal-area"></div>
   <!-- Container for the form -->
+  <div style="height: 150px;"></div>
   <div class="container">
-    <h1>Let's Start</h1>
+    <h1 style="text-align: center;">Let's Start</h1>
     <form id="user-form" action="/register/" method="post">
       {% csrf_token %}
 
@@ -56,12 +58,14 @@
     <!-- Redirect to login -->
     <p class="text-center"> Already have an account? please <a href="/login/">click here</a> to log in!</p>
     {% load static %}
-    <script src="{% static " javascript/app.js" %}"></script>
+    
 
 </body>
 
 <!-- Load jquery script -->
-<script src="{% static " javascript/jquery-3.5.1.min.js"%}" crossorigin="anonymous"></script>
+<script src="{% static "javascript/jquery-3.5.1.min.js"%}" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+<script src="{% static "javascript/alert-modal.js" %}"></script>
 
 <!-- Specif script for this view -->
 <script>
@@ -69,16 +73,20 @@
   let status = "{{status}}"
   // If the register was successful
   if (status == "COMPLETE") {
-    alert("Register completed!")
-    $(location).attr('href', '/login');
+    callModalAlert("SUCCESS", "Register completed!", function(){
+      $(location).attr('href', '/login');
+    })
+    
   }
   // If registration implies a user that already exists
   else if (status == "EXISTED") {
-    alert("This email is in used. Try another please")
+    //alert("This email is in used. Try another please")
+    callModalAlert("ERROR", "This email is in used. Try another please")
   }
   // If registration implies that some fields are missing
   else if (status == "INCOMPLETE") {
-    alert("Please fill all the fields")
+    //alert("Please fill all the fields")
+    callModalAlert("ERROR", "Please fill all the fields")
   }
 </script>
 

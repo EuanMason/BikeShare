@@ -2,13 +2,16 @@
   This file renders on the login view. 
 -->
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Load library -->
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
   <link href="https://cdn.bootcdn.net/ajax/libs/skeleton/2.0.4/skeleton.css" rel="stylesheet" />
-
+  
   <style>
     /*
     Basic style to improve the login page
@@ -37,6 +40,8 @@
 </head>
 
 <body>
+  <div id="modal-area"></div>
+  <div style="height: 110px;"></div>
   <div class="container">
     <h1>Log In</h1>
 
@@ -66,7 +71,10 @@
 
     {% load static %}
     <!-- Load scripts -->
-    <script src="{% static "javascript/app.js" %}"></script>
 </body>
+
+<script src="{% static "javascript/jquery-3.5.1.min.js"%}" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
+<script src="{% static "javascript/alert-modal.js" %}"></script>
 
 </html>

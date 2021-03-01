@@ -424,6 +424,7 @@
       </div>
     </div>
   </section>
+  <div id="modal-area"></div>
 
   <!-- This script cannot be on a separate file because of the dependey on Google Maps and Django-->
   <script>
@@ -476,6 +477,7 @@
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhwTKf3kSrByV-QeOT5hWAXN7CtM2VHFE&callback=initMap"></script>
 
   <!-- Call custom javascript functions -->
+  <script src="{% static "javascript/alert-modal.js" %}"></script>
   <script src="{% static "javascript/app-manager.js" %}"></script>
 
 </body>
