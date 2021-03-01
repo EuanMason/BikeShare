@@ -13,7 +13,7 @@ from bikeshareapp.rest_serializers import UserSerializer, UserLimitedSerializer,
 
 def user_login(request):
     if request.POST:
-        userid = request.POST.get('userid')
+        userid = request.POST.get('userid').replace(' ','')
         password = request.POST.get('password')
         user = login_check(userid, password)
 

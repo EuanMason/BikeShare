@@ -8,6 +8,11 @@
 */
 function callModalAlert(title, message, callback){
     // String representing the modal
+    /**
+     * Layout took from the official documention.
+     *  Bootstrap team. Vertically centered. On https://getbootstrap.com/docs/4.0/components/modal/
+     *  Accessed on: 28/02/2021
+     */
     let stringModal = ""
     stringModal += '<div class="modal fade" id="alert-modal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true"> '
     stringModal += '  <div class="modal-dialog modal-dialog-centered" role="document"> '

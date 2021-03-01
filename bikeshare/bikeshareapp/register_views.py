@@ -39,7 +39,7 @@ def register_view(request):
     """
     # Get the information of the user to be register
     nickname = request.POST.get("nickname", '')
-    email = request.POST.get("email", '')
+    email = request.POST.get("email", '').replace(' ','')
     password = request.POST.get("password", '')
 
     if nickname and email and password:
