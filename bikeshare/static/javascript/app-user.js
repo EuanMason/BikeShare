@@ -256,9 +256,9 @@ function addMoneyWallet() {
     var xcsrft = $.cookie("csrftoken")
 
     // Get the values of the fields
-    var creditNumber = $("#dummy-credit").val()
-    var expDate = $("#dummy-date").val()
-    var security = $("#dummy-security").val()
+    var creditNumber = $("#ccn").val()
+    var expDate = $("#ed").val()
+    var security = $("#sn").val()
 
     // General boolean to know if the validation passed
     var boolGeneralPass = true
@@ -285,7 +285,7 @@ function addMoneyWallet() {
 
     // Check if the field is empty - Date 
     if (expDate.split(' ').join('').length == 0) {
-        callModalAlert("ERROR", "Expiration date Date card must be provided")
+        callModalAlert("ERROR", "Expiration date must be provided")
         boolGeneralPass = boolGeneralPass && false
     }
     // Validate to avoid multiple modals overlap
@@ -306,7 +306,7 @@ function addMoneyWallet() {
     //  Also check if it is a number using JS funciton parseFloat
     var boolSecurity = security.length == 3 && parseFloat(security)
     if (boolSecurity == false) {
-        callModalAlert("ERROR", "Credit card must be 3 lenght and number")
+        callModalAlert("ERROR", "Security code must be 3 lenght and number")
         boolGeneralPass = boolGeneralPass && false
     }
     // Validate to avoid multiple modals overlap

@@ -159,14 +159,14 @@
         <div>
           <div class="form-group">
             <label for="ccn">Credit Card Number: </label>
-            <input id ="dummy-credit" class="form-control" placeholder="Credit Card Number" type="number" id="ccn" class="box" required />
+            <input class="form-control" placeholder="Credit Card Number" type="number" id="ccn" class="box" required />
 
             <label for="ed">Expiration Date: </label>
-            <input id ="dummy-date" class="form-control" placeholder="Expiration Date" type="month" id="ed" class="box" min="2021-02"
+            <input class="form-control" placeholder="Expiration Date" type="month" id="ed" class="box" min="2021-02"
               min="100000000" max="999999999" required />
 
             <label for="sn">Security Number: </label>
-            <input id ="dummy-security" class="form-control" placeholder="Security Number" type="number" id="sn" class="box" min="100"
+            <input class="form-control" placeholder="Security Number" type="number" id="sn" class="box" min="100"
               max="999" required />
 
             <label for="am">Amount of Money £: </label>
@@ -245,6 +245,18 @@
         $('#ride-form-main').hide()
         $('#current-trip').show()
       }
+
+      // Set max date value for exp date on wallet area
+      var date_max = new Date();
+      date_max.setMonth(date_max.getMonth() + 1) // It is needed to start on next month
+      var month = date_max.getMonth() + 1; // Month is zero based
+      var year = date_max.getFullYear();
+      // If month is less than 10 a zero prefix is added
+      if (month < 10) { 
+        month = '0' + month
+      } 
+      // Set the attribute to the date input 
+      $("#ed").attr("min", year+"-"+month)
     }
   </script>
 
