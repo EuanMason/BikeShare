@@ -5,51 +5,13 @@
 {% load static %}
 <html lang="en">
 
-<script>
-  function login() {
-   var userid = document.querySelector("#userid").value;
-   var password = document.querySelector("#password").value;
-  $.ajax({
-   type:"POST",
-   dataType:"json",
-   url:"/login/",
-   data:{
-    "userid":userid,
-    "password":password
-   },
-   beforeSend : function(){
-				if(userid == "" || password == ""){
-					alert("The username or password cannot be empty.")
-					return false;
-				}
-				return true;
-			},
-			success: function(data){
-				//{"success" : true}
-				//{"success" : false , "errorMsg" : "User name or password error!"}
-				//{"success" : false , "errorMsg" : "Sorry, your account is invalid"}
-				if(data.success){
-					//Send get request to jump to the page
-					document.location.href = "../index.html";
-				}
-        else { 
-        // If Username and/or doesn't match in database, this error appears.          
-         callModalAlert("User name or password is invalid!");
-         return false
-        }        
-			}
-   })
-}
-</script>
-
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <!-- Load library -->
   <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}" />
   <link href="https://cdn.bootcdn.net/ajax/libs/skeleton/2.0.4/skeleton.css" rel="stylesheet" />
-  
+
   <style>
     /*
     Basic style to improve the login page
@@ -90,12 +52,12 @@
       <!-- Username field -->
       <div>
         <label for="username">User Name</label>
-        <input type="text" id="username" name="userid" class="u-full-width" required/>
+        <input type="text" id="username" name="userid" class="u-full-width" required />
       </div>
       <!-- Password field -->
       <div>
         <label for="pwd">PassWord</label>
-        <input type="password" id="pwd" name="password" class="u-full-width" required/>
+        <input type="password" id="pwd" name="password" class="u-full-width" required />
       </div>
       <!-- Button to submit the fields -->
       <div>
@@ -122,6 +84,47 @@
   else if (responseStatus == 2) {
     callModalAlert("ERROR", "User does not exist. Please register")
   }
+
+  /**
+   * Validates the login values before sending the request
+   * 
+   * @param {JQuery|HTMLElement} userid - User that is intended to be logged in
+   * @param {JQuery|HTMLElement} password - User's password to be log in
+  */
+  function login() {
+    var userid = $("#userid").value();
+    var password = $("#password").value();
+    $.ajax({
+      type: "POST",
+      dataType: "json",
+      url: "/login/",
+      data: {
+        "userid": userid,
+        "password": password
+      },
+      beforeSend: function () {
+        // Check values before send the request
+        if (userid == "" || password == "") {
+          callModalAlert("ERROR", "The username or password cannot be empty.")
+          return false;
+        }
+        return true;
+      },
+      success: function (data) {
+        // If success is true
+        if (data.success) {
+          //Send get request to jump to the page
+          document.location.href = "../index.html";
+        }
+        // If not, something went wrong and display message
+        else {
+          // If Username and/or doesn't match in database, this error appears.          
+          callModalAlert("ERROR", "User name or password is invalid!");
+          return false
+        }
+      }
+    })
 </script>
+
 
 </html>
