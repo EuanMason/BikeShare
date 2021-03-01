@@ -255,6 +255,75 @@ function addMoneyWallet() {
     var amount = $("#am").val()
     var xcsrft = $.cookie("csrftoken")
 
+    // Get the values of the fields
+    var creditNumber = $("#dummy-credit").val()
+    var expDate = $("#dummy-date").val()
+    var security = $("#dummy-security").val()
+
+    // General boolean to know if the validation passed
+    var boolGeneralPass = true
+    // Check if the field is empty - Credit card
+    if (creditNumber.split(' ').join('').length == 0) {
+        callModalAlert("ERROR", "Credit card must be provided")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+    // Check if it is of length 16 and all numbers
+    //  Also check if it is a number using JS funciton parseFloat
+    var boolCreditCard = creditNumber.length == 16 && parseFloat(creditNumber)
+    if (boolCreditCard == false) {
+        callModalAlert("ERROR", "Credit card must be 16 lenght and number")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+
+    // Check if the field is empty - Date 
+    if (expDate.split(' ').join('').length == 0) {
+        callModalAlert("ERROR", "Expiration date Date card must be provided")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+
+    // Check if the field is empty - Security code 
+    if (security.split(' ').join('').length == 0) {
+        callModalAlert("ERROR", "Security code must be provided")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+    // Check if it is of length 16 and all numbers
+    //  Also check if it is a number using JS funciton parseFloat
+    var boolSecurity = security.length == 3 && parseFloat(security)
+    if (boolSecurity == false) {
+        callModalAlert("ERROR", "Credit card must be 3 lenght and number")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+
+    // Check if the field is empty - Amount
+    if (amount.split(' ').join('').length == 0) {
+        callModalAlert("ERROR", "Amount of money must be provided")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+
     // Make the REST requesto to API using a POST protocol to add money to the wallet
     $.ajax({
         type: "POST",
