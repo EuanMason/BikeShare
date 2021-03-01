@@ -16,7 +16,8 @@ function returnBike() {
     var xcsrft = $.cookie("csrftoken")
     // Call an alert if the location is empty
     if (currentLocation.length == 0) {
-        alert("Write the postcode please");
+        //alert("Write the postcode please");
+        callModalAlert("ERROR", "Write the postcode please")
     }
     else {
         // Quit timer
@@ -52,7 +53,8 @@ function returnBike() {
             error: function (response, textStatus, errorThrown) {
                 // If location is not found
                 if (response.status == 404) {
-                    alert("This is not a valid postcode/address. Please enter a correct one")
+                    //alert("This is not a valid postcode/address. Please enter a correct one")
+                    callModalAlert("ERROR", "This is not a valid postcode/address. Please enter a correct one")
                 }
             }
         });
@@ -86,16 +88,20 @@ function makePayment() {
             // If the API responds correctly show to the user if it has a debt or how much is the available money in its wallet
             var data = response.data;
             var credit = data.credit
+            var text = ""
             if (credit < 0) {
                 // If there is a debt
-                alert("You have a debt of " + (-1 * credit) + ". You will need to add enough money to your wallet before riding again")
+                //alert("You have a debt of " + (-1 * credit) + ". You will need to add enough money to your wallet before riding again")
+                text = "You have a debt of " + (-1 * credit) + ". You will need to add enough money to your wallet before riding again"
             }
             else {
                 // If there is not debt show the credit on wallet
-                alert("You have payed your ride. Your current credit is " + credit)
+                text = "You have payed your ride. Your current credit is " + credit
             }
             // Go to home page
-            location.href = "/home"
+            callModalAlert("INFO", text, function() {
+                location.href = "/home"
+            })
         }
     });
 }

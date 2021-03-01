@@ -129,7 +129,7 @@
           </div>
           <div class="form-group">
             <!-- To get all the bikes in the operator view -->
-            <button class="submitbox btn btn-primary" onclick="getBikesOperator()">
+            <button class="submitbox btn btn-primary" onclick="getBikesOperator(true)">
               Search
             </button>
           </div>
@@ -146,7 +146,9 @@
         </div>
       </div>
     </div>
-  </section>
+    </section>
+
+    <div id="modal-area"></div>
 
   <!--  Load the route samples to simulate movement when bikes are being tracked-->
   <script src="{% static "javascript/routes.js" %}"></script>
@@ -196,8 +198,9 @@
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAhwTKf3kSrByV-QeOT5hWAXN7CtM2VHFE&callback=initMap"></script>
 
   <!-- Call custom javascript functions -->
+  <script src="{% static "javascript/alert-modal.js" %}"></script>
   <script src="{% static "javascript/app-operator.js" %}"></script>
-
+  
 </body>
 
 </html>

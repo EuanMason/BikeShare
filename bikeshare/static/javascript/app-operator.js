@@ -301,14 +301,16 @@ function getPendingOps() {
  * Update the map when the customer selects a location to look for bikes
  * 
  * @param {JQuery|HTMLElement} postcode -  The postcode value on the input
+ * @param {boolean} needsValidation - If true it will raise an error if the field is empty
 */
-function getBikesOperator(results) {
+function getBikesOperator(needsValidation) {
     // Get the postcode valude
     var postcode = $("#postcode").val()
     // Validate the postcode is not empty neither only spaces
-    if (postcode.split(' ').join('').length == 0) {
+    if (postcode.split(' ').join('').length == 0 && needsValidation) {
         // In case the input is empty
-        alert("ERROR: Please write a postcode")
+        //alert("ERROR: Please write a postcode")
+        callModalAlert("ERROR", "Please write a postcode")
         // Cut the execution 
         return
     }
@@ -844,7 +846,8 @@ function BikeRepaired(bikeId) {
         success: function (response) {
             // Alert of the new state of the bike
             var data = response.data;
-            alert("The repairment has started.");
+            //alert("The repairment has started.");
+            callModalAlert("SUCCESS", "The repairment has started.")
             // Refresh the current view
             getBikesOperator();
             getPendingOps();
@@ -877,7 +880,7 @@ function BikeRepairedFinish(bikeId) {
         success: function (response) {
             // Alert of the new state of the bike
             var data = response.data;
-            alert("The repairment has ended. The bike will be returned to the last location where it was");
+            callModalAlert("SUCCESS", "The repairment has ended. The bike will be returned to the last location where it was")
             // Refresh the current view
             getPendingOps();
             getBikesOperator();
@@ -901,7 +904,8 @@ function MoveLocation(bikeId) {
     var NewPostcode = document.querySelector("#NewPostcode" + bikeId).value;
     // Check if empty
     if (NewPostcode == "" || NewPostcode == "") {
-        alert("Please enter the new postcode.");
+        callModalAlert("ERROR","Please enter the new postcode.")
+        //alert("Please enter the new postcode.");
     } else {
         // Make a REST request using POST protocol to start the movement of the bike
         $.ajax({
@@ -919,7 +923,8 @@ function MoveLocation(bikeId) {
             success: function (response) {
                 // Alert of the new state of the bike
                 var data = response.data;
-                alert("Bike movement has started.");
+                //alert("Bike movement has started.");
+                callModalAlert("SUCCESS", "Bike movement has started.")
                 // Refresh the current view
                 getBikesOperator();
                 getPendingOps();
@@ -942,7 +947,8 @@ function MoveLocationFinish(bikeId) {
 
     // Check if empty
     if (NewPostcode == "" || NewPostcode == "") {
-        alert("Please enter the new postcode.");
+        //alert("Please enter the new postcode.");
+        callModalAlert("ERROR", "Please enter the new postcode.")
     } else {
         // Make a REST request using POST protocol to end the movement of the bike
         $.ajax({
@@ -960,7 +966,8 @@ function MoveLocationFinish(bikeId) {
             success: function (response) {
                 // Alert of the new state of the bike
                 var data = response.data;
-                alert("Bike movement has finished.");
+                //alert("Bike movement has finished.");
+                callModalAlert("SUCCESS", "Bike movement has finished.")
                 // Refresh the current view
                 getBikesOperator();
                 getPendingOps();

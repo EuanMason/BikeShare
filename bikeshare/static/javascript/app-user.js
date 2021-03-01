@@ -83,7 +83,8 @@ function showMap(results) {
     // Validate the postcode is not empty neither only spaces
     if (postcode.split(' ').join('').length == 0) {
         // In case the input is empty
-        alert("ERROR: Please write a postcode")
+        //alert("ERROR: Please write a postcode")
+        callModalAlert("ERROR", "Please write a postcode")
         // Cut the execution 
         return
     }
@@ -236,7 +237,8 @@ function showMap(results) {
             error: function (response, textStatus, errorThrown) {
                 // In case there is no bike at the location and 404 is returned from the API
                 if (response.status == 404) {
-                    alert("There is no bike in this place. Try another one")
+                    //alert("There is no bike in this place. Try another one")
+                    callModalAlert("ERROR", "There is no bike in this place. Try another one")
                 }
             }
         });
@@ -252,6 +254,75 @@ function addMoneyWallet() {
     // Get the amount and the token
     var amount = $("#am").val()
     var xcsrft = $.cookie("csrftoken")
+
+    // Get the values of the fields
+    var creditNumber = $("#ccn").val()
+    var expDate = $("#ed").val()
+    var security = $("#sn").val()
+
+    // General boolean to know if the validation passed
+    var boolGeneralPass = true
+    // Check if the field is empty - Credit card
+    if (creditNumber.split(' ').join('').length == 0) {
+        callModalAlert("ERROR", "Credit card must be provided")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+    // Check if it is of length 16 and all numbers
+    //  Also check if it is a number using JS funciton parseFloat
+    var boolCreditCard = creditNumber.length == 16 && parseFloat(creditNumber)
+    if (boolCreditCard == false) {
+        callModalAlert("ERROR", "Credit card must be 16 lenght and number")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+
+    // Check if the field is empty - Date 
+    if (expDate.split(' ').join('').length == 0) {
+        callModalAlert("ERROR", "Expiration date must be provided")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+
+    // Check if the field is empty - Security code 
+    if (security.split(' ').join('').length == 0) {
+        callModalAlert("ERROR", "Security code must be provided")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+    // Check if it is of length 16 and all numbers
+    //  Also check if it is a number using JS funciton parseFloat
+    var boolSecurity = security.length == 3 && parseFloat(security)
+    if (boolSecurity == false) {
+        callModalAlert("ERROR", "Security code must be 3 lenght and number")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
+
+    // Check if the field is empty - Amount
+    if (amount.split(' ').join('').length == 0) {
+        callModalAlert("ERROR", "Amount of money must be provided")
+        boolGeneralPass = boolGeneralPass && false
+    }
+    // Validate to avoid multiple modals overlap
+    if (boolGeneralPass == false) {
+        return
+    }
 
     // Make the REST requesto to API using a POST protocol to add money to the wallet
     $.ajax({
@@ -269,16 +340,21 @@ function addMoneyWallet() {
         success: function (response) {
             var data = response.data;
             var credit = data.credit
+            var text = ""
             // Validate the current amount of money in the wallet after transaction
             if (credit < 0) {
                 // If there is still a debt
-                alert("You have a debt of " + (-1 * credit) + ". You will need to add enough money to your wallet before riding again")
+                text = "You have a debt of £" + (-1 * credit) + ". You will need to add enough money to your wallet before riding again"
+                //alert("You have a debt of " + (-1 * credit) + ". You will need to add enough money to your wallet before riding again")
             }
             else {
                 // If the user has a superavit (i.e more money that the spedend)
-                alert("Your current credit is " + credit)
+                //alert("Your current credit is " + credit)
+                text = "Your current credit is £" + credit
             }
-            location.href = "/home"
+            callModalAlert("INFO", text, function() {
+                location.href = "/home"
+            })
         }
     });
 }
@@ -307,7 +383,8 @@ function bikeIDStartSubmit(value) {
             // Set the CSRF token before send since Django expected that way
             request.setRequestHeader("X-CSRFToken", xcsrft);
             if (bikeid == "" || bikeid == "") {
-                alert("The bikeID cannot be empty");
+                // alert("The bikeID cannot be empty");
+                callModalAlert("ERROR", "The bikeID cannot be empty")
                 return false;
             }
             return true;
@@ -319,10 +396,12 @@ function bikeIDStartSubmit(value) {
             }
             // If not, alert of possible errors
             else if (response.state == 0) {
-                alert("Please input correct BikeID!");
+                // alert("Please input correct BikeID!");
+                callModalAlert("ERROR", "Please input correct BikeID!")
             }
             else if (response.state == 1) {
-                alert("This Bike cannot be used now!");
+                // alert("This Bike cannot be used now!");
+                callModalAlert("ERROR", "This Bike cannot be used now!")
             }
         },
     });
@@ -337,7 +416,8 @@ function CallModal(value) {
     var bikeid = value;
     // Check if is empty then alert an error
     if (bikeid == "" || bikeid == "") {
-        alert("The bikeID cannot be empty");
+        //alert("The bikeID cannot be empty");
+        callModalAlert("ERROR", "The bikeID cannot be empty")
         return false;
     } else {
         // Show modal
@@ -358,7 +438,8 @@ function HideModal() {
     $modal.modal("hide");
     $modal.on("hidden.bs.modal", function () {
         // When the modal is hide show an alert 
-        alert("Success! - This report has been sent to us.");
+        //alert("Success! - This report has been sent to us.");
+        callModalAlert("SUCCESS", "This report has been sent to us")
     });
 };
 
@@ -388,7 +469,8 @@ function bikeIDErrorSubmit() {
             // Set the CSRF token before send since Django expected that way
             request.setRequestHeader("X-CSRFToken", xcsrft);
             if (bikeid == "" || bikeid == "") {
-                alert("The bikeID cannot be empty");
+                //alert("The bikeID cannot be empty");
+                callModalAlert("ERROR", "The bikeID cannot be empty")
                 return false;
             }
             return true;

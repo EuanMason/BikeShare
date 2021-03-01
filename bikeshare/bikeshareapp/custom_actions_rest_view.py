@@ -1022,7 +1022,8 @@ def report_data(request):
 
         # Query to get the count reports per operator
         queryset_cnt_repairs_op = (
-            Repairs.objects.all()
+            Repairs.objects
+                .filter(AssignedOperator__isnull=False)
                 .annotate(opera=F('AssignedOperator__userid'))
                 .values('opera')
                 .annotate(counts=Count('opera'))
