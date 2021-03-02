@@ -51,12 +51,12 @@
       </div>
       <!-- Username field -->
       <div>
-        <label for="username">User Name</label>
+        <label for="username">Email</label>
         <input type="text" id="username" name="userid" class="u-full-width" required />
       </div>
       <!-- Password field -->
       <div>
-        <label for="pwd">PassWord</label>
+        <label for="pwd">Password</label>
         <input type="password" id="pwd" name="password" class="u-full-width" required />
       </div>
       <!-- Button to submit the fields -->
@@ -72,10 +72,17 @@
 </body>
 
 <script src="{% static "javascript/jquery-3.5.1.min.js"%}" crossorigin="anonymous"></script>
+<!-- Load jquery cookie - This is used to manage the cookies on the app -->
+<script type="text/javascript" src="{% static "javascript/jquery.cookie.min.js"%}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
 <script src="{% static "javascript/alert-modal.js" %}"></script>
 
 <script>
+  // check for token
+  if (typeof $.cookie('csrftoken') === 'undefined') {
+    location.reload();
+  }
+
   // Getting the response and showing a different alert depending on it
   var responseStatus = "{{ info }}"
   if (responseStatus == 1) {
@@ -124,6 +131,7 @@
         }
       }
     })
+  }
 </script>
 
 

@@ -64,11 +64,17 @@
 
 <!-- Load jquery script -->
 <script src="{% static "javascript/jquery-3.5.1.min.js"%}" crossorigin="anonymous"></script>
+<!-- Load jquery cookie - This is used to manage the cookies on the app -->
+<script type="text/javascript" src="{% static "javascript/jquery.cookie.min.js"%}"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js" crossorigin="anonymous"></script>
 <script src="{% static "javascript/alert-modal.js" %}"></script>
 
 <!-- Specif script for this view -->
 <script>
+  // check for token
+  if (typeof $.cookie('csrftoken') === 'undefined') {
+    location.reload();
+  }
   // Validate the status that API is responding
   let status = "{{status}}"
   // If the register was successful
