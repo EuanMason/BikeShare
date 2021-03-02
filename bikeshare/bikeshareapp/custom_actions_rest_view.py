@@ -555,7 +555,51 @@ def moveBikeStart(request):
                 # Get the user id, bike id and place from the request
                 user_id = request.COOKIES['userid']
                 bike_id = data['bike_id']
-                intented = data['place']
+                intented = data['place'].replace(' ','').upper()
+
+                # Try to get the location based on the location using line 1 or postcode
+                queryset = Address.objects.filter(Line1=intented) | Address.objects.filter(Postcode=intented)
+
+                if not queryset:
+                    # If the result is empty the create a new location using google maps api
+                    address = intented.replace(" ", "+")
+                    api_key = "AIzaSyD0SRiJJupEmCVUyh-WnilaPP00dcgBb_c"
+                    url = "https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}".format(address, api_key)
+                    result = requests.get(url).json()
+                    # Check if the result is not empty
+                    if(len(result['results']) > 0):
+                        # Get the components of the location to create an Address object on DB
+                        # Get the town
+                        for i in result['results'][0]["address_components"]:
+                            if "postal_town" in i["types"]:
+                                town = i["long_name"]
+
+                        # Get the postcode
+                        for i in result['results'][0]["address_components"]:
+                            if "postal_code" in i["types"]:
+                                postcode = i["long_name"]
+                                postcode = postcode.replace(" ","")
+                        line1 = intented
+
+                        # Get the longitude and latitude
+                        for i in result['results'][0]["address_components"]:
+                            if "route" in i["types"]:
+                                if line1 == intented:
+                                    line1 = ""
+                                line1 += i["long_name"] + " "
+                            if "sublocality" in i["types"]:
+                                if line1 == intented:
+                                    line1 = ""
+                                line1 += i["long_name"]
+
+                        # Set it in a format we can use
+                        lat = result['results'][0]["geometry"]["location"]["lat"]
+                        long = result['results'][0]["geometry"]["location"]["lng"]
+                        # Save the Address object on DB
+                        Address.objects.update_or_create(Line1=line1, City=town, Postcode=postcode, Longitude=long, Latitude=lat)
+                    else:
+                        # If not result found
+                        return Response(status=status.HTTP_404_NOT_FOUND)
 
                 # Get the location and check with line 1 and postcode
                 locations = Address.objects.filter(Line1=intented)
@@ -621,7 +665,51 @@ def moveBikeEnd(request):
                 # Get the user id, bike id and place from the request
                 user_id = request.COOKIES['userid']
                 bike_id = data['bike_id']
-                intented = data['place']
+                intented = data['place'].replace(' ','').upper()
+
+                # Try to get the location based on the location using line 1 or postcode
+                queryset = Address.objects.filter(Line1=intented) | Address.objects.filter(Postcode=intented)
+
+                if not queryset:
+                    # If the result is empty the create a new location using google maps api
+                    address = intented.replace(" ", "+")
+                    api_key = "AIzaSyD0SRiJJupEmCVUyh-WnilaPP00dcgBb_c"
+                    url = "https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}".format(address, api_key)
+                    result = requests.get(url).json()
+                    # Check if the result is not empty
+                    if(len(result['results']) > 0):
+                        # Get the components of the location to create an Address object on DB
+                        # Get the town
+                        for i in result['results'][0]["address_components"]:
+                            if "postal_town" in i["types"]:
+                                town = i["long_name"]
+
+                        # Get the postcode
+                        for i in result['results'][0]["address_components"]:
+                            if "postal_code" in i["types"]:
+                                postcode = i["long_name"]
+                                postcode = postcode.replace(" ","")
+                        line1 = intented
+
+                        # Get the longitude and latitude
+                        for i in result['results'][0]["address_components"]:
+                            if "route" in i["types"]:
+                                if line1 == intented:
+                                    line1 = ""
+                                line1 += i["long_name"] + " "
+                            if "sublocality" in i["types"]:
+                                if line1 == intented:
+                                    line1 = ""
+                                line1 += i["long_name"]
+
+                        # Set it in a format we can use
+                        lat = result['results'][0]["geometry"]["location"]["lat"]
+                        long = result['results'][0]["geometry"]["location"]["lng"]
+                        # Save the Address object on DB
+                        Address.objects.update_or_create(Line1=line1, City=town, Postcode=postcode, Longitude=long, Latitude=lat)
+                    else:
+                        # If not result found
+                        return Response(status=status.HTTP_404_NOT_FOUND)
 
                 # Get the location and check with line 1 and postcode
                 locations = Address.objects.filter(Line1=intented)
