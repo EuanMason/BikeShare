@@ -326,7 +326,7 @@ def returnBike(request):
     if request.method == 'POST':
         # Get the values from the request (bikeid, location, trip and userid)
         bike_id = request.data['bike_id']
-        location = request.data['location'].replace(" ","")
+        location = request.data['location'].replace(" ","").upper()
         trip_id = request.data['trip_id']
         user_id = request.COOKIES['userid']
 
@@ -405,7 +405,7 @@ def returnBike(request):
         # Update the trip
         trip.update(EndTime=end_time, EndAddress=serialized.data["location_id"], Cost=cost)
         # Serialze the trip and return it 
-        serialized_trip = TripSerializer(Trip.objects.get(BikeID=bike_id, Cost=cost))
+        serialized_trip = TripSerializer(Trip.objects.get(TripID=trip_id, BikeID=bike_id, Cost=cost))
 
         response = {
             "status" : "OK",
