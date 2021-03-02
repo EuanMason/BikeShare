@@ -914,7 +914,7 @@ function MoveLocation(bikeId) {
             url: "/bike-move-start/",
             data: {
                 bike_id: bikeId,
-                place: $("#NewPostcode" + bikeId).val().toUpperCase()
+                place: $("#NewPostcode" + bikeId).val().replace(" ","").toUpperCase()
             },
             beforeSend: function (request) {
                 // Set the CSRF token before send since Django expected that way
@@ -943,7 +943,7 @@ function MoveLocationFinish(bikeId) {
     // The token
     var xcsrft = $.cookie("csrftoken")
     // Getting the value of the postcode
-    var NewPostcode = $("#NewPostcodeMove" + bikeId).val();
+    var NewPostcode = $("#NewPostcodeMove" + bikeId).val().replace(" ","");
 
     // Check if empty
     if (NewPostcode == "" || NewPostcode == "") {
@@ -957,7 +957,7 @@ function MoveLocationFinish(bikeId) {
             url: "/bike-move-end/",
             data: {
                 bike_id: bikeId,
-                place: NewPostcode.toUpperCase()
+                place: NewPostcode.replace(" ","").toUpperCase()
             },
             beforeSend: function (request) {
                 // Set the CSRF token before send since Django expected that way
