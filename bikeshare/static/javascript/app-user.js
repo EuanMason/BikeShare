@@ -97,7 +97,7 @@ function showMap(results) {
         $.ajax({
             type: "GET",
             dataType: "json",
-            url: "/all-bikes-location/" + postcode,
+            url: "/all-bikes-location/" + postcode.toUpperCase(),
             data: {},
             success: function (response) {
                 // hide the text that ask for the postcode at the beginning

@@ -322,7 +322,7 @@ function getBikesOperator(needsValidation) {
         $.ajax({
             type: "GET",
             dataType: "json",
-            url: "/all-bikes-location/" + postcode,
+            url: "/all-bikes-location/" + postcode.toUpperCase(),
             data: {},
             success: function (response) {
                 // Show the area to select bikes
@@ -914,7 +914,7 @@ function MoveLocation(bikeId) {
             url: "/bike-move-start/",
             data: {
                 bike_id: bikeId,
-                place: $("#NewPostcode" + bikeId).val()
+                place: $("#NewPostcode" + bikeId).val().toUpperCase()
             },
             beforeSend: function (request) {
                 // Set the CSRF token before send since Django expected that way
@@ -957,7 +957,7 @@ function MoveLocationFinish(bikeId) {
             url: "/bike-move-end/",
             data: {
                 bike_id: bikeId,
-                place: NewPostcode
+                place: NewPostcode.toUpperCase()
             },
             beforeSend: function (request) {
                 // Set the CSRF token before send since Django expected that way

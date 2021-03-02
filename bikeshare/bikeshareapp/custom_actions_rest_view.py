@@ -104,7 +104,7 @@ def getAllBikesBasedOnLocation(request, location):
 
     role = request.COOKIES['role']
     # Change plus signs with spaces in case needed
-    location = location.replace('+',' ')
+    location = location.replace('+',' ').upper()
     try:
         # Try to get the location using the line 1
         locations = Address.objects.filter(Line1=location) 
