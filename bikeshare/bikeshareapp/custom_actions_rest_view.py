@@ -346,7 +346,7 @@ def returnBike(request):
         if not queryset:
             # If the result is empty the create a new location using google maps api
             address = location.replace(" ", "+")
-            api_key = "AIzaSyD0SRiJJupEmCVUyh-WnilaPP00dcgBb_c"
+            api_key = ""
             url = "https://maps.googleapis.com/maps/api/geocode/json?address={}&key={}".format(address, api_key)
             result = requests.get(url).json()
             # Check if the result is not empty
